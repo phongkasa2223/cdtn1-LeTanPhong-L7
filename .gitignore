@@ -1,0 +1,33 @@
+# ===== Track DA – Python / pandas =====
+# Môi trường ảo & cache Python
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Biến môi trường thật (chỉ commit .env.example)
+.env
+
+# Log
+*.log
+
+# Dữ liệu nguồn dung lượng lớn – chỉ commit mẫu nhỏ trong data/sample/
+data/raw/
+data/processed/
+*.parquet
+
+# Cơ sở dữ liệu cục bộ / file dump
+*.db
+*.sqlite
+*.sqlite3
+*.dump
+
+# Cấu hình IDE / hệ điều hành
+.idea/
+.vscode/settings.json
+.DS_Store
+Thumbs.db
