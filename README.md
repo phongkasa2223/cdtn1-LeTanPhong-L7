@@ -33,6 +33,6 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 - [x] Khởi tạo repo, cấu trúc thư mục, `.gitignore`, `.env.example`, README khung (buổi 2)
 - [ ] Khởi tạo project Node.js và smoke test `GET /health` (buổi 2)
 - [x] Bản SRS rút gọn (`docs/srs.md`) và Use Case Diagram (`docs/tuan2/UseCase_L7_DataQuality.drawio`) – Bài tập 1 (buổi 3–4)
-- [ ] API contract – Bài tập 1 (buổi 4–6)
+- [x] API contract (Phần 3 trong `docs/tuan2/Baocaobuoi4–LeTanPhong–2374802010384–Track SE–L7.docx`) – Bài tập 1 (buổi 4)
 - [ ] Module nhập file và kiểm tra bản ghi khách hàng (buổi 8–10)
 - [ ] Module duyệt gộp hồ sơ trùng và báo cáo chất lượng (buổi 10–12)

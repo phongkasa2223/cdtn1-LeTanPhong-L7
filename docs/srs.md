@@ -2,7 +2,8 @@
 
 **Sinh viên:** Lê Tấn Phong – 2374802010384 – Track SE  
 **Luồng nghiệp vụ:** L7 – Chất lượng dữ liệu khách hàng (case study Mekong Mobile)  
-**Sơ đồ Use Case gốc:** [`docs/tuan2/UseCase_L7_DataQuality.drawio`](tuan2/UseCase_L7_DataQuality.drawio)
+**Sơ đồ Use Case gốc:** [`docs/tuan2/UseCase_L7_DataQuality.drawio`](tuan2/UseCase_L7_DataQuality.drawio)  
+**API contract (Track SE):** Phần 3 trong `docs/tuan2/Baocaobuoi4–LeTanPhong–2374802010384–Track SE–L7.docx`
 
 > Cấu trúc rút gọn theo tinh thần ISO/IEC/IEEE 29148 (không tuân thủ đầy đủ chuẩn).
 
