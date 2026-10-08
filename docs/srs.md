@@ -3,7 +3,9 @@
 **Sinh viên:** Lê Tấn Phong – 2374802010384 – Track SE  
 **Luồng nghiệp vụ:** L7 – Chất lượng dữ liệu khách hàng (case study Mekong Mobile)  
 **Sơ đồ Use Case gốc:** [`docs/usecase.drawio`](usecase.drawio)  
-**API contract (Track SE):** [`docs/api-contract.md`](api-contract.md)
+**API contract (Track SE):** [`docs/api-contract.md`](api-contract.md)  
+**Thiết kế:** [`docs/architecture.drawio`](architecture.drawio) · [`docs/erd.drawio`](erd.drawio) · [`docs/schema.sql`](schema.sql) · [`docs/wireframe.drawio`](wireframe.drawio)  
+**Bản nộp BT1 (PDF):** `BT1_2374802010384_LeTanPhong.pdf` – nội dung trùng với tài liệu này
 
 > Cấu trúc rút gọn theo tinh thần ISO/IEC/IEEE 29148 (không tuân thủ đầy đủ chuẩn).
 
@@ -35,24 +37,25 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 - Không xác minh số điện thoại/email với nhà mạng hoặc bằng tin nhắn.
 - Không có màn hình quản lý tài khoản; tài khoản người dùng được tạo sẵn bằng script khởi tạo dữ liệu.
 
-### 1.5. Thuật ngữ nghiệp vụ
-| Thuật ngữ | Giải thích |
-| :--- | :--- |
-| Lần nhập | Một lần nhân viên tải một file CSV lên ứng dụng; có mã duy nhất (ví dụ I001), lưu nguồn, người nhập, thời điểm. |
-| Bản ghi nhập | Một dòng trong file đã nhập, giữ nguyên giá trị gốc kèm giá trị sau chuẩn hóa. |
-| Hồ sơ khách hàng | Bản ghi hợp lệ đã được đưa vào danh sách khách hàng; mỗi khách hàng thật chỉ nên có một hồ sơ (Single Customer View). |
-| Trường bắt buộc | Họ tên, số điện thoại (SĐT), ngày tạo. |
-| Chuẩn hóa | Họ tên: bỏ khoảng trắng thừa, viết hoa chữ cái đầu mỗi từ. SĐT: bỏ khoảng trắng, dấu chấm, gạch nối; đổi tiền tố +84/84 thành 0. Email: chuyển về chữ thường. |
-| Mã lỗi | `MISSING_FIELD` – thiếu trường bắt buộc; `PHONE_LENGTH` – SĐT sau chuẩn hóa không đủ 10 chữ số; `PHONE_PREFIX` – đầu số không thuộc danh mục đầu số di động Việt Nam; `PHONE_CHAR` – SĐT chứa chữ cái hoặc ký hiệu khác; `EMAIL_INVALID` – email sai định dạng; `DATE_INVALID` – ngày sinh/ngày tạo sai định dạng hoặc ở tương lai. |
-| Cặp nghi trùng | Hai hồ sơ có cùng SĐT đã chuẩn hóa hoặc cùng email; trạng thái: Chờ duyệt, Đã gộp, Giữ riêng. |
-| Điểm tương đồng | Số từ 0 đến 1 đo mức giống nhau của họ tên giữa hai hồ sơ; chỉ dùng để sắp xếp và gợi ý, không dùng để tự gộp. |
-| Tỷ lệ lỗi | Số bản ghi có ít nhất một mã lỗi / tổng số bản ghi của lần nhập × 100%. |
+### 1.5. Bảng thuật ngữ
+| Thuật ngữ | Tên trong ERD / API | Giải thích |
+| :--- | :--- | :--- |
+| Người dùng | `app_user` | Tài khoản đăng nhập; vai trò Nhân viên dữ liệu (`DATA_STAFF`) hoặc Quản lý dữ liệu (`DATA_MANAGER`). |
+| Lần nhập | `import_batch` | Một lần tải một file CSV lên ứng dụng; có mã duy nhất (ví dụ I001), lưu nguồn, người nhập, thời điểm. |
+| Bản ghi nhập | `import_record` | Một dòng của file đã nhập; giữ giá trị gốc và giá trị sau chuẩn hóa/sau khi sửa. |
+| Mã lỗi | `record_error` | `MISSING_FIELD` – thiếu trường bắt buộc; `PHONE_LENGTH` – SĐT sau chuẩn hóa không đủ 10 chữ số; `PHONE_PREFIX` – đầu số không thuộc danh mục đầu số di động Việt Nam; `PHONE_CHAR` – SĐT chứa ký tự khác chữ số; `EMAIL_INVALID` – email sai định dạng; `DATE_INVALID` – ngày sai định dạng hoặc ở tương lai. |
+| Hồ sơ khách hàng | `customer` | Bản ghi hợp lệ đã vào danh sách khách hàng; mỗi khách hàng thật chỉ nên có một hồ sơ (Single Customer View). |
+| Cặp nghi trùng | `duplicate_pair` | Hai hồ sơ cùng SĐT đã chuẩn hóa hoặc cùng email; trạng thái Chờ duyệt (`PENDING`), Đã gộp (`MERGED`), Giữ riêng (`KEEP_SEPARATE`). |
+| Trường bắt buộc | — | Họ tên, số điện thoại (SĐT), ngày tạo. |
+| Chuẩn hóa | — | Họ tên: bỏ khoảng trắng thừa, viết hoa chữ cái đầu mỗi từ. SĐT: bỏ khoảng trắng, dấu chấm, gạch nối; đổi +84/84 thành 0. Email: chữ thường. |
+| Điểm tương đồng | `similarity` | Số từ 0 đến 1 đo mức giống nhau của họ tên hai hồ sơ; chỉ để sắp xếp và gợi ý, không dùng để tự gộp. |
+| Tỷ lệ lỗi | — (tính khi truy vấn) | Số bản ghi có ít nhất một mã lỗi / tổng số bản ghi của lần nhập × 100%. |
 
 ## 2. Các bên liên quan và vai trò người dùng
 | Vai trò (Actor) | Mô tả | Được làm | Không được làm |
 | :--- | :--- | :--- | :--- |
 | Nhân viên dữ liệu | Nhân viên phụ trách dữ liệu khách hàng, người dùng chính của ứng dụng | Nhập file; xem danh sách lần nhập; xem và sửa bản ghi lỗi; duyệt cặp nghi trùng; tra cứu khách hàng. | Xem báo cáo tổng hợp; xóa lần nhập; tách hồ sơ đã gộp. |
-| Quản lý dữ liệu | Người chịu trách nhiệm chất lượng dữ liệu khách hàng | Xem báo cáo theo lần nhập; tra cứu khách hàng; (hướng mở rộng) tách hồ sơ gộp nhầm. | Nhập file; sửa bản ghi; duyệt cặp nghi trùng (tách bạch người làm và người kiểm soát). |
+| Quản lý dữ liệu | Người chịu trách nhiệm chất lượng dữ liệu khách hàng | Xem báo cáo theo lần nhập; tra cứu khách hàng. | Nhập file; sửa bản ghi; duyệt cặp nghi trùng (tách bạch người làm và người kiểm soát). |
 
 ## 3. Yêu cầu chức năng và User Story
 
@@ -63,11 +66,10 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 | FR2 | Với mỗi bản ghi được nhập hoặc được sửa, hệ thống chuẩn hóa họ tên, SĐT, email, gắn mã lỗi cho bản ghi vi phạm, đưa bản ghi không lỗi vào danh sách khách hàng và tạo cặp nghi trùng khi bản ghi trùng SĐT chuẩn hoặc email với một hồ sơ đã có. |
 | FR3 | Hệ thống hiển thị danh sách các lần nhập, mới nhất trước; mỗi dòng có mã lần nhập, nguồn, người nhập, thời điểm, tổng bản ghi và số bản ghi lỗi. |
 | FR4 | Hệ thống hiển thị danh sách bản ghi lỗi của một lần nhập, lọc được theo mã lỗi, phân trang 50 dòng mỗi trang; mỗi dòng có giá trị gốc và mô tả lỗi. |
-| FR5 | Hệ thống cho phép sửa họ tên, SĐT, email, ngày sinh, ngày tạo của một bản ghi lỗi; khi lưu, bản ghi được kiểm tra lại theo FR2 và chỉ được lưu khi không còn lỗi. |
+| FR5 | Hệ thống cho phép sửa họ tên, SĐT, email, địa chỉ, ngày sinh, ngày tạo của một bản ghi lỗi; khi lưu, bản ghi được kiểm tra lại theo FR2, chỉ được lưu khi không còn lỗi và các mã lỗi cũ được đánh dấu đã khắc phục. |
 | FR6 | Hệ thống hiển thị từng cặp nghi trùng cạnh nhau kèm điểm tương đồng; nhân viên chọn Gộp (chọn hồ sơ giữ lại) hoặc Giữ riêng; hệ thống lưu người quyết định và thời điểm. |
 | FR7 | Hệ thống tìm khách hàng theo SĐT (chuẩn hóa SĐT nhập vào trước khi tìm) và trả về hồ sơ kèm danh sách bản ghi nguồn. |
 | FR8 | Hệ thống hiển thị báo cáo theo từng lần nhập: tổng bản ghi, số và tỷ lệ bản ghi lỗi theo mã lỗi, số cặp nghi trùng đã gộp / giữ riêng / chờ duyệt; chỉ vai trò Quản lý dữ liệu xem được. |
-| FR9 | (COULD – không hiện thực) Hệ thống cho phép Quản lý dữ liệu tách một hồ sơ đã gộp về các hồ sơ ban đầu. |
 
 ### 3.2. User Story (kèm mức MoSCoW và tiêu chí chấp nhận Given–When–Then)
 
@@ -86,7 +88,7 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 - AC3 (ngoại lệ). GIVEN không có lần nhập mã I999; WHEN mở danh sách bản ghi lỗi của I999; THEN hệ thống báo “Không tìm thấy lần nhập I999”.
 
 **US4 [SHOULD]** Là nhân viên dữ liệu, tôi muốn sửa trực tiếp một bản ghi lỗi trên ứng dụng để bản ghi được kiểm tra lại ngay mà không phải sửa file rồi nhập lại.
-- AC1. GIVEN bản ghi có SĐT “09012345” (mã PHONE_LENGTH); WHEN nhân viên sửa thành “0901234567” và bấm Lưu; THEN mã lỗi được xóa và bản ghi được đưa vào danh sách khách hàng.
+- AC1. GIVEN bản ghi có SĐT “09012345” (mã PHONE_LENGTH); WHEN nhân viên sửa thành “0901234567” và bấm Lưu; THEN mã lỗi được đánh dấu đã khắc phục và bản ghi được đưa vào danh sách khách hàng.
 - AC2 (ngoại lệ). GIVEN nhân viên sửa SĐT thành “0111234567” (đầu số 011 không thuộc danh mục); WHEN bấm Lưu; THEN hệ thống từ chối, báo “Đầu số không hợp lệ” và giữ nguyên dữ liệu đang nhập trên form.
 
 **US5 [MUST]** Là nhân viên dữ liệu, tôi muốn duyệt từng cặp hồ sơ nghi trùng và chọn gộp hoặc giữ riêng để mỗi khách hàng thật chỉ còn một hồ sơ.
@@ -102,9 +104,7 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 - AC1. GIVEN lần nhập I001 có 300 bản ghi, trong đó 15 bản ghi có lỗi; WHEN mở báo cáo; THEN tỷ lệ lỗi của I001 hiển thị 5%.
 - AC2 (ngoại lệ). GIVEN người dùng đăng nhập với vai trò Nhân viên dữ liệu; WHEN mở báo cáo; THEN hệ thống từ chối truy cập.
 
-**US8 [COULD]** Là quản lý dữ liệu, tôi muốn tách một hồ sơ bị gộp nhầm về lại các hồ sơ ban đầu để sửa sai mà không mất dữ liệu. *(Không hiện thực trong học phần – ghi vào hướng mở rộng.)*
-
-> **Ghi chú MoSCoW.** 8 story: 3 MUST (US1, US3, US5) tạo thành luồng tối thiểu nhập file → thấy lỗi → gộp hồ sơ trùng; 4 SHOULD (US2, US4, US6, US7) vì có cách làm tạm: xem lần nhập ngay sau khi nhập (US2), sửa file nguồn rồi nhập lại (US4), tìm trong danh sách khách hàng (US6), đếm từ danh sách bản ghi lỗi (US7); 1 COULD (US8). Các mục WON’T ở mục 1.4.
+> **Ghi chú MoSCoW.** 7 story: 3 MUST (US1, US3, US5) tạo thành luồng tối thiểu nhập file → thấy lỗi → gộp hồ sơ trùng; 4 SHOULD (US2, US4, US6, US7) vì có cách làm tạm: xem kết quả ngay sau khi nhập (US2), sửa file nguồn rồi nhập lại (US4), tìm trong danh sách khách hàng (US6), đếm từ danh sách bản ghi lỗi (US7). **COULD – hướng mở rộng, không hiện thực:** Quản lý dữ liệu tách một hồ sơ bị gộp nhầm. Các mục WON’T ở mục 1.4.
 
 ### 3.3. Tự kiểm INVEST
 | Story | I | N | V | E | S | T | Ghi chú |
@@ -116,7 +116,6 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 | US5 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | US6 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
 | US7 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | |
-| US8 | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | COULD – không hiện thực. |
 
 *I – độc lập, N – thương lượng được (không nêu công nghệ, tên bảng), V – có giá trị cho người dùng, E – ước lượng được, S – làm xong trong 1–3 ngày, T – kiểm thử được bằng tiêu chí chấp nhận.*
 
@@ -132,10 +131,10 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 ## 5. Ràng buộc và quy tắc nghiệp vụ
 - **BR1:** Trường bắt buộc gồm họ tên, SĐT, ngày tạo; bản ghi thiếu trường nào bị gắn `MISSING_FIELD`.
 - **BR2:** SĐT hợp lệ khi sau chuẩn hóa gồm đúng 10 chữ số, bắt đầu bằng 0 và có đầu số thuộc danh mục đầu số di động Việt Nam hiện hành (lưu trong file cấu hình).
-- **BR3:** Bản ghi còn mã lỗi không được đưa vào danh sách khách hàng cho đến khi được sửa hết lỗi.
+- **BR3:** Bản ghi còn mã lỗi chưa khắc phục không được đưa vào danh sách khách hàng.
 - **BR4:** Hồ sơ chỉ được gộp khi có nhân viên duyệt; hệ thống không tự gộp.
 - **BR5:** Mỗi cặp nghi trùng chỉ được quyết định một lần; quyết định sau bị từ chối.
-- **BR6:** Không xóa lần nhập và bản ghi gốc; hồ sơ đã gộp không tự tách ngược (việc tách cần Quản lý dữ liệu – hướng mở rộng).
+- **BR6:** Không xóa lần nhập và giá trị gốc của bản ghi; hồ sơ đã gộp không tự tách ngược.
 - **BR7:** File nhập là CSV mã hóa UTF-8, tối đa 5 MB, có các cột: `ho_ten`, `so_dien_thoai`, `email`, `dia_chi`, `ngay_sinh`, `ngay_tao`.
 
 ## 6. Bảng truy vết yêu cầu
@@ -149,7 +148,6 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 | FR6 | Duyệt cặp hồ sơ nghi trùng | US5 | UC5 | MUST | Bổ sung ở BT3 |
 | FR7 | Tra cứu khách hàng theo SĐT | US6 | UC6 | SHOULD | Bổ sung ở BT3 |
 | FR8 | Báo cáo chất lượng theo lần nhập | US7 | UC7 | SHOULD | Bổ sung ở BT3 |
-| FR9 | Tách hồ sơ gộp nhầm | US8 | Chưa vẽ (COULD) | COULD | Không hiện thực |
 
 *Bảng không có ô trống. Mã test case cụ thể (TC01, TC02…) được bổ sung vào cột “Test case” khi làm BT3.*
 

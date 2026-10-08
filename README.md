@@ -21,7 +21,7 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 ## 4. Cấu trúc thư mục
 | Thư mục | Nội dung |
 | :--- | :--- |
-| `docs/` | Tài liệu: `srs.md`, `usecase.drawio`, `api-contract.md`, `ai-disclosure.md`; bài nộp theo tuần trong `tuan1/`, `tuan2/` |
+| `docs/` | Tài liệu BT1: `srs.md`, `usecase.drawio`, `architecture.drawio`, `erd.drawio`, `schema.sql`, `wireframe.drawio`, `api-contract.md`, `ai-disclosure.md`; bài nộp theo tuần trong `tuan1/`, `tuan2/` |
 | `src/` | Mã nguồn API (Node.js/Express) |
 | `tests/` | Kiểm thử tự động |
 | `data/` | File CSV khách hàng mẫu để thử chức năng nhập |
@@ -34,5 +34,6 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 - [ ] Khởi tạo project Node.js và smoke test `GET /health` (buổi 2)
 - [x] Bản SRS rút gọn (`docs/srs.md`) và Use Case Diagram (`docs/usecase.drawio`) – Bài tập 1 (buổi 3–4)
 - [x] API contract (`docs/api-contract.md`) – Bài tập 1 (buổi 4)
+- [x] Thiết kế kiến trúc (`docs/architecture.drawio`), ERD + SQL DDL (`docs/erd.drawio`, `docs/schema.sql`), wireframe 3 màn hình (`docs/wireframe.drawio`) – Bài tập 1 (buổi 5–6)
 - [ ] Module nhập file và kiểm tra bản ghi khách hàng (buổi 8–10)
 - [ ] Module duyệt gộp hồ sơ trùng và báo cáo chất lượng (buổi 10–12)
