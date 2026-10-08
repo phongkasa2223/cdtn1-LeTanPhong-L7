@@ -2,8 +2,8 @@
 
 **Sinh viên:** Lê Tấn Phong – 2374802010384 – Track SE  
 **Luồng nghiệp vụ:** L7 – Chất lượng dữ liệu khách hàng (case study Mekong Mobile)  
-**Sơ đồ Use Case gốc:** [`docs/tuan2/UseCase_L7_DataQuality.drawio`](tuan2/UseCase_L7_DataQuality.drawio)  
-**API contract (Track SE):** Phần 3 trong `docs/tuan2/Baocaobuoi4–LeTanPhong–2374802010384–Track SE–L7.docx`
+**Sơ đồ Use Case gốc:** [`docs/usecase.drawio`](usecase.drawio)  
+**API contract (Track SE):** [`docs/api-contract.md`](api-contract.md)
 
 > Cấu trúc rút gọn theo tinh thần ISO/IEC/IEEE 29148 (không tuân thủ đầy đủ chuẩn).
 
@@ -141,17 +141,17 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 ## 6. Bảng truy vết yêu cầu
 | Mã FR | Yêu cầu chức năng | User Story | Use Case | MoSCoW | Test case (BT3) |
 | :---: | :--- | :---: | :---: | :---: | :--- |
-| FR1 | Nhập file CSV khách hàng | US1 | UC1 | MUST | |
-| FR2 | Kiểm tra và chuẩn hóa bản ghi, tạo cặp nghi trùng | US1, US4 | UC1, UC4 | MUST | |
-| FR3 | Danh sách các lần nhập | US2 | UC2 | SHOULD | |
-| FR4 | Danh sách bản ghi lỗi có lọc theo mã lỗi | US3 | UC3 | MUST | |
-| FR5 | Sửa bản ghi lỗi | US4 | UC4 | SHOULD | |
-| FR6 | Duyệt cặp hồ sơ nghi trùng | US5 | UC5 | MUST | |
-| FR7 | Tra cứu khách hàng theo SĐT | US6 | UC6 | SHOULD | |
-| FR8 | Báo cáo chất lượng theo lần nhập | US7 | UC7 | SHOULD | |
+| FR1 | Nhập file CSV khách hàng | US1 | UC1 | MUST | Bổ sung ở BT3 |
+| FR2 | Kiểm tra và chuẩn hóa bản ghi, tạo cặp nghi trùng | US1, US4 | UC1, UC4 | MUST | Bổ sung ở BT3 |
+| FR3 | Danh sách các lần nhập | US2 | UC2 | SHOULD | Bổ sung ở BT3 |
+| FR4 | Danh sách bản ghi lỗi có lọc theo mã lỗi | US3 | UC3 | MUST | Bổ sung ở BT3 |
+| FR5 | Sửa bản ghi lỗi | US4 | UC4 | SHOULD | Bổ sung ở BT3 |
+| FR6 | Duyệt cặp hồ sơ nghi trùng | US5 | UC5 | MUST | Bổ sung ở BT3 |
+| FR7 | Tra cứu khách hàng theo SĐT | US6 | UC6 | SHOULD | Bổ sung ở BT3 |
+| FR8 | Báo cáo chất lượng theo lần nhập | US7 | UC7 | SHOULD | Bổ sung ở BT3 |
 | FR9 | Tách hồ sơ gộp nhầm | US8 | Chưa vẽ (COULD) | COULD | Không hiện thực |
 
-*Bốn cột FR – User Story – Use Case – MoSCoW đã điền đủ, không có ô trống. Cột “Test case” để trống ở BT1 và điền dần khi làm BT3.*
+*Bảng không có ô trống. Mã test case cụ thể (TC01, TC02…) được bổ sung vào cột “Test case” khi làm BT3.*
 
 ---
 
@@ -179,7 +179,7 @@ Không có actor là hệ thống ngoài: hệ thống bán lẻ và bảo hành
 - **UC4 «extend» UC3** – việc sửa CHỈ xảy ra khi nhân viên chọn một bản ghi trong danh sách lỗi (điểm mở rộng “Chọn bản ghi”); xem danh sách vẫn hoàn chỉnh khi không sửa.
 - “Kiểm tra và chuẩn hóa bản ghi” (FR2) không vẽ thành use case riêng vì tự nó không mang lại mục tiêu hoàn chỉnh cho actor; đây là một bước trong luồng chính của UC1 (bước 5) và UC4.
 
-Sơ đồ: [`docs/tuan2/UseCase_L7_DataQuality.drawio`](tuan2/UseCase_L7_DataQuality.drawio) (mở bằng app.diagrams.net).
+Sơ đồ: [`docs/usecase.drawio`](usecase.drawio) – trang 1 “UseCase_L7” là sơ đồ, trang 2 “DacTa_UseCase” là đặc tả UC1 và UC5 (mở bằng app.diagrams.net).
 
 ## Đặc tả chi tiết UC1 – Nhập file khách hàng
 - **Actor chính:** Nhân viên dữ liệu

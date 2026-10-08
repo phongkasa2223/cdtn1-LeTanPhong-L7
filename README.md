@@ -21,7 +21,7 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 ## 4. Cấu trúc thư mục
 | Thư mục | Nội dung |
 | :--- | :--- |
-| `docs/` | Tài liệu: SRS (`srs.md`), khai báo sử dụng AI, tài liệu nộp theo tuần (`tuan1/`, `tuan2/`) |
+| `docs/` | Tài liệu: `srs.md`, `usecase.drawio`, `api-contract.md`, `ai-disclosure.md`; bài nộp theo tuần trong `tuan1/`, `tuan2/` |
 | `src/` | Mã nguồn API (Node.js/Express) |
 | `tests/` | Kiểm thử tự động |
 | `data/` | File CSV khách hàng mẫu để thử chức năng nhập |
@@ -32,7 +32,7 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 ## 6. Trạng thái hiện tại
 - [x] Khởi tạo repo, cấu trúc thư mục, `.gitignore`, `.env.example`, README khung (buổi 2)
 - [ ] Khởi tạo project Node.js và smoke test `GET /health` (buổi 2)
-- [x] Bản SRS rút gọn (`docs/srs.md`) và Use Case Diagram (`docs/tuan2/UseCase_L7_DataQuality.drawio`) – Bài tập 1 (buổi 3–4)
-- [x] API contract (Phần 3 trong `docs/tuan2/Baocaobuoi4–LeTanPhong–2374802010384–Track SE–L7.docx`) – Bài tập 1 (buổi 4)
+- [x] Bản SRS rút gọn (`docs/srs.md`) và Use Case Diagram (`docs/usecase.drawio`) – Bài tập 1 (buổi 3–4)
+- [x] API contract (`docs/api-contract.md`) – Bài tập 1 (buổi 4)
 - [ ] Module nhập file và kiểm tra bản ghi khách hàng (buổi 8–10)
 - [ ] Module duyệt gộp hồ sơ trùng và báo cáo chất lượng (buổi 10–12)
