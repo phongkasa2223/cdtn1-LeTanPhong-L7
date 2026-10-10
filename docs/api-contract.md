@@ -53,6 +53,10 @@ Mọi phản hồi lỗi có cùng cấu trúc:
 
 Vai trò người dùng: `DATA_STAFF` (Nhân viên dữ liệu), `DATA_MANAGER` (Quản lý dữ liệu).
 
+Quy tắc áp dụng cho mọi endpoint (Bảng 9.1 của case study):
+- **QT-14 (BR6):** với `DATA_STAFF`, các danh sách lần nhập, bản ghi và cặp nghi trùng chỉ trả về dữ liệu của cửa hàng/trung tâm của người gọi; truy cập dữ liệu đơn vị khác trả `404`.
+- **QT-15 (BR7):** SĐT trong hồ sơ khách hàng trả về dạng che (`090****567`) với `DATA_STAFF`, đầy đủ với `DATA_MANAGER`.
+
 ## 3. Đặc tả chi tiết endpoint
 
 ### E1. `POST /api/auth/login` – Đăng nhập
@@ -175,13 +179,13 @@ Authorization: Bearer <token>
   "items": [
     {
       "pairId": "P0007",
-      "matchedBy": "PHONE",
+      "matchedBy": "EMAIL",
       "similarity": 0.93,
       "status": "PENDING",
       "customerA": { "customerId": "C000123", "fullName": "Nguyễn Văn An",
-                     "phone": "0901234567", "source": "RETAIL" },
-      "customerB": { "customerId": "C000987", "fullName": "Nguyễn Văn Ân",
-                     "phone": "0901234567", "source": "WARRANTY" }
+                     "phone": "090****567", "source": "RETAIL" },
+      "customerB": { "customerId": "C000987", "fullName": "Nguyen Van An",
+                     "phone": "098****321", "source": "WARRANTY" }
     }
   ]
 }
@@ -206,18 +210,18 @@ Authorization: Bearer <token>
 ```json
 {
   "pairId": "P0007",
-  "matchedBy": "PHONE",
+  "matchedBy": "EMAIL",
   "similarity": 0.93,
   "status": "PENDING",
   "customerA": { "customerId": "C000123", "fullName": "Nguyễn Văn An",
-                 "phone": "0901234567", "email": null,
-                 "address": "12 Lê Lợi, Q.1, TP.HCM", "birthDate": "1990-05-12",
+                 "phone": "090****567", "email": "an.nguyen@gmail.com",
+                 "address": null, "birthDate": "1990-05-12",
                  "source": "RETAIL" },
-  "customerB": { "customerId": "C000987", "fullName": "Nguyễn Văn Ân",
-                 "phone": "0901234567", "email": "an.nguyen@gmail.com",
+  "customerB": { "customerId": "C000987", "fullName": "Nguyen Van An",
+                 "phone": "098****321", "email": "an.nguyen@gmail.com",
                  "address": "45 Nguyễn Huệ, Q.1, TP.HCM", "birthDate": "1990-05-12",
                  "source": "WARRANTY" },
-  "differentFields": ["fullName", "address"]
+  "differentFields": ["fullName", "phone"]
 }
 ```
 
@@ -228,7 +232,7 @@ Authorization: Bearer <token>
 | 404 | Không có cặp với `pairId` | `PAIR_NOT_FOUND` |
 
 ### E6. `POST /api/duplicate-pairs/{pairId}/decision` – Gộp hoặc giữ riêng
-Truy vết: US5 – UC5 (bước 5–7) – FR6, BR4, BR5. Với Gộp, `fieldChoices` chỉ định hồ sơ lấy giá trị cho từng trường khác nhau (UC5-5a); trường còn trống của hồ sơ giữ lại được bổ sung tự động (US5-AC1). Với Giữ riêng gửi `{ "action": "KEEP_SEPARATE" }`.
+Truy vết: US5 – UC5 (bước 5–7) – FR6, BR4, BR5. Với Gộp, `fieldChoices` chỉ định hồ sơ lấy giá trị cho từng trường khác nhau (UC5-5a); trường còn trống của hồ sơ giữ lại được bổ sung tự động (US5-AC1); hồ sơ còn lại không bị xóa mà được ghi `merged_into_id` trỏ tới hồ sơ giữ lại (QT-13). SĐT của hồ sơ giữ lại phải được chọn trong `fieldChoices` vì hai hồ sơ luôn khác SĐT (QT-01). Với Giữ riêng gửi `{ "action": "KEEP_SEPARATE" }`.
 
 **Request mẫu:**
 ```http
@@ -239,7 +243,7 @@ Content-Type: application/json
 {
   "action": "MERGE",
   "keepCustomerId": "C000123",
-  "fieldChoices": { "fullName": "C000123", "address": "C000987" }
+  "fieldChoices": { "fullName": "C000123", "phone": "C000123" }
 }
 ```
 
@@ -250,7 +254,7 @@ Content-Type: application/json
   "status": "MERGED",
   "survivingCustomerId": "C000123",
   "mergedCustomerId": "C000987",
-  "result": { "fullName": "Nguyễn Văn An", "phone": "0901234567",
+  "result": { "fullName": "Nguyễn Văn An", "phone": "090****567",
               "email": "an.nguyen@gmail.com", "address": "45 Nguyễn Huệ, Q.1, TP.HCM" },
   "decidedBy": "nv.lan",
   "decidedAt": "2026-10-05T10:02:41+07:00"
