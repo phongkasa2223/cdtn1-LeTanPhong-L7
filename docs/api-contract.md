@@ -272,7 +272,7 @@ Content-Type: application/json
 | 404 | Không có cặp với `pairId` | `PAIR_NOT_FOUND` |
 | 409 | Cặp đã được xử lý trước đó (UC5-7a, US5-AC3, BR4) | `PAIR_ALREADY_DECIDED` |
 
-### 3.5. Quản lý hồ sơ khách hàng (Sprint 1, mở rộng E9 – xem `docs/thay-doi-thiet-ke.md` TD-06)
+### 3.5. Quản lý hồ sơ khách hàng (Sprint 1, mở rộng E9 – xem `docs/thay-doi-thiet-ke.md` mục 6)
 
 `customerId` trong URL và trong phản hồi là mã hiển thị (ví dụ `C000013`). Trường nhận vào: `fullName`, `phone`, `email`, `address`, `birthDate`, `createdDate` (quy tắc ở mục 4). SĐT được chuẩn hóa về `0xxxxxxxxx` (QT-02) rồi kiểm tính duy nhất (QT-01).
 
@@ -292,7 +292,7 @@ Content-Type: application/json
 | 409 | SĐT đã thuộc hồ sơ khác (QT-01); `details.customerId` là hồ sơ đang giữ số đó | `DUPLICATE_PHONE` |
 | 409 | Sửa hồ sơ đã gộp vào hồ sơ khác (QT-13) | `CUSTOMER_MERGED` |
 
-**Không có `DELETE`:** BR5 (QT-13) cấm xóa vật lý hồ sơ khách hàng; hồ sơ trùng chỉ được gộp qua E6 (đánh dấu `mergedInto`). Vì vậy CRUD khách hàng ở Sprint 1 là tạo – xem – sửa – liệt kê/tra cứu (xem TD-06).
+**Không có `DELETE`:** BR5 (QT-13) cấm xóa vật lý hồ sơ khách hàng; hồ sơ trùng chỉ được gộp qua E6 (đánh dấu `mergedInto`). Vì vậy CRUD khách hàng ở Sprint 1 là tạo – xem – sửa – liệt kê/tra cứu (xem `docs/thay-doi-thiet-ke.md` mục 7).
 
 Chưa hiện thực ở Sprint 1: xác thực (401/403), QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) – làm cùng E1 ở Sprint 2.
 

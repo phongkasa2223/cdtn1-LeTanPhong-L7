@@ -12,7 +12,7 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 
 ## 2. Yêu cầu môi trường
 - Node.js 20.6 trở lên (đã thử trên Node 24), npm
-- MySQL 8.0 hoặc MariaDB 10.4 trở lên (đang chạy thử trên MariaDB 10.4.32 của XAMPP – xem `docs/thay-doi-thiet-ke.md`, TD-04)
+- MySQL 8.0 hoặc MariaDB 10.4 trở lên (đang chạy thử trên MariaDB 10.4.32 của XAMPP – xem `docs/thay-doi-thiet-ke.md`, mục 4)
 - Biến môi trường: xem `.env.example` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `JWT_SECRET`, `PORT`)
 
 ## 3. Hướng dẫn chạy
@@ -63,9 +63,9 @@ npm test      # node --test, 16 test, không cần CSDL (dùng repository giả)
 - [x] API contract (`docs/api-contract.md`) – Bài tập 1 (buổi 4)
 - [x] Thiết kế kiến trúc (`docs/architecture.drawio`), ERD + SQL DDL (`docs/erd.drawio`, `docs/schema.sql`), wireframe 3 màn hình (`docs/wireframe.png`, gốc `docs/wireframe.drawio`) – Bài tập 1 (buổi 5–6)
 - [x] Sprint 1 (buổi 8): migration 6 bảng theo DDL BT1, seed mẫu chạy lại được, quản lý khách hàng qua 3 lớp (tạo, xem, sửa, liệt kê, tra cứu theo SĐT), 16 unit test PASS
-- [x] QT-01 (SĐT duy nhất), QT-02 (chuẩn hóa SĐT theo `config/phone_prefixes.json`, NFR5), QT-13/BR5 (hồ sơ đã gộp không sửa được; không có thao tác xóa hồ sơ – TD-07)
+- [x] QT-01 (SĐT duy nhất), QT-02 (chuẩn hóa SĐT theo `config/phone_prefixes.json`, NFR5), QT-13/BR5 (hồ sơ đã gộp không sửa được; không có thao tác xóa hồ sơ – `docs/thay-doi-thiet-ke.md` mục 7)
 - [ ] QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) – cần xác thực JWT, làm ở Sprint 2
 - [ ] Module nhập file và kiểm tra bản ghi khách hàng (buổi 8–10) – chưa có; cần giao dịch InnoDB cho NFR3 và test lỗi giữa chừng
 - [ ] Module duyệt gộp hồ sơ trùng và báo cáo chất lượng (buổi 10–12) – cần test BR4 (hai nhân viên cùng duyệt một cặp)
 - [ ] Chưa nạp bộ dữ liệu thật `customers_raw.csv` (tải từ E-learning); hiện dùng 12 hồ sơ sinh giả trong `seeds/001_demo.sql`
-- Ghi chú: chạy trên MariaDB 10.4 thay vì MySQL 8.0 (TD-04); chưa kiểm trên MySQL 8.0 thật.
+- Ghi chú: chạy trên MariaDB 10.4 thay vì MySQL 8.0 (`docs/thay-doi-thiet-ke.md` mục 4); chưa kiểm trên MySQL 8.0 thật.
