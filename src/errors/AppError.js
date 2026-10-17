@@ -19,4 +19,17 @@ class ValidationError extends AppError {
   }
 }
 
-module.exports = { AppError, ValidationError };
+/**
+ * Lỗi ràng buộc của CSDL đã được repository dịch sang dạng trung tính:
+ * kind = 'DUPLICATE' (trùng khóa duy nhất) hoặc 'REFERENCED' (còn bản ghi tham chiếu).
+ * Service quyết định đây là mã nghiệp vụ nào.
+ */
+class ConstraintError extends Error {
+  constructor(kind, message) {
+    super(message);
+    this.name = 'ConstraintError';
+    this.kind = kind;
+  }
+}
+
+module.exports = { AppError, ValidationError, ConstraintError };
