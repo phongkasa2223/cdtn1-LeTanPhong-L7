@@ -102,7 +102,7 @@ Xây dựng **ứng dụng web và REST API** cho phép nhân viên dữ liệu 
 | NFR2 | Bảo mật | Mọi chức năng trừ kiểm tra tình trạng hệ thống (health check) yêu cầu đăng nhập; tài khoản Nhân viên dữ liệu gọi chức năng báo cáo bị từ chối 100% số lần; mật khẩu không được lưu ở dạng đọc được trong cơ sở dữ liệu. |
 | NFR3 | Tin cậy | Nhập file được lưu theo giao dịch: nếu lỗi giữa chừng (ví dụ mất kết nối cơ sở dữ liệu) thì 0 bản ghi của file được lưu và không có lần nhập dở dang. |
 | NFR4 | Khả dụng | Nhân viên dữ liệu mới, sau 5 phút được hướng dẫn, duyệt xong một cặp nghi trùng trong dưới 1 phút mà không cần hỏi đồng nghiệp. |
-| NFR5 | Bảo trì | Thêm một đầu số di động mới chỉ cần sửa file cấu hình danh mục đầu số, không sửa mã nguồn. |
+| NFR5 | Bảo trì | Thêm một đầu số di động mới trong dưới 5 phút, chỉ bằng cách sửa file cấu hình danh mục đầu số (`config/phone_prefixes.json`), 0 dòng mã nguồn bị sửa. |
 
 ## 5. Ràng buộc và quy tắc nghiệp vụ
 Các quy tắc QT lấy từ Bảng 9.1 của case study (QT-01, QT-02 của luồng L7 và QT-13, QT-14, QT-15 áp dụng cho mọi luồng); BR là mã dùng trong tài liệu này.
