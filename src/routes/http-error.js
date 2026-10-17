@@ -8,7 +8,6 @@ const HTTP_BY_CODE = Object.freeze({
   CUSTOMER_NOT_FOUND: 404,
   DUPLICATE_PHONE: 409,
   CUSTOMER_MERGED: 409,
-  CUSTOMER_IN_USE: 409,
 });
 
 /** Bọc handler async: lỗi nghiệp vụ -> JSON { error }, lỗi lạ -> chuyển cho bộ xử lý lỗi cuối (500). */

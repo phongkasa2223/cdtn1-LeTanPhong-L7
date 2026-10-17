@@ -62,9 +62,8 @@ npm test      # node --test, 16 test, không cần CSDL (dùng repository giả)
 - [x] Bản SRS rút gọn (`docs/srs.md`) và Use Case Diagram (`docs/usecase.drawio`) – Bài tập 1 (buổi 3–4)
 - [x] API contract (`docs/api-contract.md`) – Bài tập 1 (buổi 4)
 - [x] Thiết kế kiến trúc (`docs/architecture.drawio`), ERD + SQL DDL (`docs/erd.drawio`, `docs/schema.sql`), wireframe 3 màn hình (`docs/wireframe.png`, gốc `docs/wireframe.drawio`) – Bài tập 1 (buổi 5–6)
-- [x] Sprint 1 (buổi 8): migration 6 bảng theo DDL BT1, seed mẫu chạy lại được, CRUD khách hàng qua 3 lớp, 16 unit test PASS
-- [x] QT-01 (SĐT duy nhất), QT-02 (chuẩn hóa SĐT theo `config/phone_prefixes.json`, NFR5), QT-13 (hồ sơ đã gộp không sửa/xóa)
-- [ ] `DELETE /customers/{id}` đang mâu thuẫn với BR5 (không xóa vật lý hồ sơ) – đã ghi ở TD-06, xử lý ở Sprint 2
+- [x] Sprint 1 (buổi 8): migration 6 bảng theo DDL BT1, seed mẫu chạy lại được, quản lý khách hàng qua 3 lớp (tạo, xem, sửa, liệt kê, tra cứu theo SĐT), 16 unit test PASS
+- [x] QT-01 (SĐT duy nhất), QT-02 (chuẩn hóa SĐT theo `config/phone_prefixes.json`, NFR5), QT-13/BR5 (hồ sơ đã gộp không sửa được; không có thao tác xóa hồ sơ – TD-07)
 - [ ] QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) – cần xác thực JWT, làm ở Sprint 2
 - [ ] Module nhập file và kiểm tra bản ghi khách hàng (buổi 8–10) – chưa có; cần giao dịch InnoDB cho NFR3 và test lỗi giữa chừng
 - [ ] Module duyệt gộp hồ sơ trùng và báo cáo chất lượng (buổi 10–12) – cần test BR4 (hai nhân viên cùng duyệt một cặp)

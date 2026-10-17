@@ -21,8 +21,7 @@ class ValidationError extends AppError {
 
 /**
  * Lỗi ràng buộc của CSDL đã được repository dịch sang dạng trung tính:
- * kind = 'DUPLICATE' (trùng khóa duy nhất) hoặc 'REFERENCED' (còn bản ghi tham chiếu).
- * Service quyết định đây là mã nghiệp vụ nào.
+ * kind = 'DUPLICATE' (trùng khóa duy nhất). Service quyết định đây là mã nghiệp vụ nào.
  */
 class ConstraintError extends Error {
   constructor(kind, message) {

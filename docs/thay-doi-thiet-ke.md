@@ -2,7 +2,7 @@
 
 ## Sau phản hồi Bài tập 1 (buổi 8, ngày 17/10/2026)
 
-Điểm BT1: 9.5/10. Hai điểm cần khắc phục được ghi ở TD-01 và TD-02; TD-03 là góp ý về độ dài báo cáo; TD-04 phát sinh khi dựng môi trường.
+Điểm BT1: 9.5/10. Hai điểm cần khắc phục được ghi ở TD-01 và TD-02; TD-03 là góp ý về độ dài báo cáo; TD-04 đến TD-07 phát sinh khi dựng môi trường và hiện thực Sprint 1.
 
 ### TD-01 Bổ sung ngưỡng số cho NFR5
 
@@ -19,8 +19,9 @@
 - Quyết định  : SỬA
 - Lý do       : UC5 gắn với BR4 (mỗi cặp nghi trùng chỉ được quyết định một lần), là quy tắc cần kiểm thử ở BT2;
                 đặc tả phải đọc được ngay trong tài liệu SRS thay vì chỉ trong sơ đồ.
-- Ảnh hưởng   : Mục "Đặc tả chi tiết UC5" đã có trong `docs/srs.md` (luồng ngoại lệ 7a tham chiếu BR4);
-                rà lại cho khớp trang 2 của `docs/usecase.drawio`. File PDF BT1 đã chấm không nộp lại.
+- Ảnh hưởng   : Mục "Đặc tả chi tiết UC5" đã có trong `docs/srs.md` (luồng ngoại lệ 7a tham chiếu BR4) và khớp trang 2 của `docs/usecase.drawio`.
+                File PDF BT1 đã chấm không nộp lại; phần tóm tắt UC5 sẽ được đưa vào báo cáo BT2. Đồng thời sửa nhãn quy tắc ở
+                `docs/api-contract.md` (409 `PAIR_ALREADY_DECIDED`): BR5 → BR4 cho khớp SRS.
 
 ### TD-03 Giữ nguyên độ dài báo cáo BT1 (16 trang)
 
@@ -50,16 +51,22 @@
 - Ảnh hưởng   : `docs/schema.sql` và `migrations/001_init.sql` (hai file giống hệt nhau). Cấu trúc bảng, khóa, chỉ mục không đổi;
                 chạy migrate + seed hai lần cho cùng số dòng (xem `docs/ket-qua-migrate-seed-test.png`).
 
-### TD-06 Thêm endpoint CRUD khách hàng và dùng mã hiển thị làm định danh ở API
+### TD-06 Thêm endpoint quản lý khách hàng, dùng mã hiển thị làm định danh ở API
 
 - Phản hồi của GV : Không có – phát sinh khi chọn entity đầu tiên cho Sprint 1.
 - Quyết định  : SỬA
 - Lý do       : `api-contract.md` BT1 chỉ có E9 (`GET /customers?phone=`). Slide Buổi 8 yêu cầu CRUD đủ ba lớp cho entity chính, và `customer`
                 là entity trung tâm của L7. Định danh trong URL là mã hiển thị (`C000013`), khớp trường `customerId` trong hợp đồng API;
                 khóa số `customer_id` chỉ dùng trong CSDL.
-- Ảnh hưởng   : Thêm `GET /customers`, `GET/PUT/DELETE /customers/{customerId}`, `POST /customers` vào mục 3.5 của `docs/api-contract.md`.
-                Mã lỗi mới: `DUPLICATE_PHONE` (409), `CUSTOMER_NOT_FOUND` (404), `CUSTOMER_MERGED` (409), `CUSTOMER_IN_USE` (409).
+- Ảnh hưởng   : Thêm `GET /customers`, `GET /customers/{customerId}`, `POST /customers`, `PUT /customers/{customerId}` vào mục 3.5 của `docs/api-contract.md`.
+                Mã lỗi mới: `DUPLICATE_PHONE` (409), `CUSTOMER_NOT_FOUND` (404), `CUSTOMER_MERGED` (409).
                 QT-14 và QT-15 (cần biết người gọi) chưa hiện thực ở Sprint 1 vì xác thực JWT làm ở Sprint 2; ghi `[ ]` trong README mục 6.
-                **Mâu thuẫn đã biết với BR5 (QT-13):** BR5 cấm xóa vật lý hồ sơ khách hàng, nhưng `DELETE /customers/{id}` xóa vật lý.
-                Giảm nhẹ: khóa ngoại từ `stg_customer`, `duplicate_pair` và `merged_into_id` chặn xóa mọi hồ sơ đã phát sinh dữ liệu (trả 409 `CUSTOMER_IN_USE`),
-                nên chỉ xóa được hồ sơ vừa tạo nhầm. Hướng xử lý ở Sprint 2: bỏ endpoint hoặc chỉ cho `DATA_MANAGER`, vì khi đó mới có phân quyền.
+
+### TD-07 Không có thao tác xóa hồ sơ khách hàng (giữ BR5)
+
+- Phản hồi của GV : Không có – phát sinh khi hiện thực CRUD.
+- Quyết định  : GIỮ NGUYÊN BR5
+- Lý do       : BR5 (QT-13) cấm xóa vật lý hồ sơ khách hàng; hồ sơ trùng chỉ được gộp và đánh dấu `merged_into_id`. Một bản `DELETE` đã được viết
+                rồi gỡ ra vì nó xóa được cả hồ sơ đã gộp (khóa ngoại chỉ chặn xóa hồ sơ được giữ lại, không chặn xóa hồ sơ đã gộp) và mọi hồ sơ chưa ai tham chiếu.
+- Ảnh hưởng   : CRUD của Sprint 1 là tạo – xem – sửa – liệt kê/tra cứu; không có `DELETE /customers/{id}`. Sửa hồ sơ đã gộp bị chặn (`CUSTOMER_MERGED`).
+                Ghi chú này đã có ở `docs/api-contract.md` mục 3.5. Nếu thầy yêu cầu đủ chữ D, hướng xử lý là thêm cột trạng thái hồ sơ (đổi ERD) – chưa làm.

@@ -23,7 +23,6 @@ function fakeRepo(rows = [], hooks = {}) {
       return code;
     }),
     update: async () => {},
-    delete: hooks.delete || (async () => {}),
   };
 }
 
@@ -85,9 +84,8 @@ test('TC-S6 QT-13: hồ sơ đã gộp không sửa được', async () => {
   );
 });
 
-test('TC-S7 xóa hồ sơ đang được tham chiếu bị từ chối (CUSTOMER_IN_USE)', async () => {
-  const referenced = fakeRepo([existing], { delete: async () => { throw new ConstraintError('REFERENCED', '1451'); } });
-  await assert.rejects(() => service(referenced).remove('C000001'), (err) => err.code === 'CUSTOMER_IN_USE');
+test('TC-S7 BR5: dịch vụ không có thao tác xóa hồ sơ khách hàng', () => {
+  assert.equal(typeof service(fakeRepo()).remove, 'undefined');
 });
 
 /* ================= DỮ LIỆU SAI ================= */

@@ -1,7 +1,6 @@
 const { ConstraintError } = require('../errors/AppError');
 
 const ER_DUP_ENTRY = 1062;
-const ER_ROW_IS_REFERENCED = 1451;
 const CODE_DIGITS = 6;
 
 const SELECT_CUSTOMER = `
@@ -73,18 +72,8 @@ class CustomerRepository {
     }
   }
 
-  async delete(customerId) {
-    try {
-      await this.db.query('DELETE FROM customer WHERE customer_id = ?', [customerId]);
-    } catch (err) {
-      throw this.translate(err);
-    }
-  }
-
   translate(err) {
-    if (err.errno === ER_DUP_ENTRY) return new ConstraintError('DUPLICATE', err.message);
-    if (err.errno === ER_ROW_IS_REFERENCED) return new ConstraintError('REFERENCED', err.message);
-    return err;
+    return err.errno === ER_DUP_ENTRY ? new ConstraintError('DUPLICATE', err.message) : err;
   }
 }
 

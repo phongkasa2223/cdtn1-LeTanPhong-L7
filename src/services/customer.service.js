@@ -95,22 +95,15 @@ class CustomerService {
     return this.getDto(code);
   }
 
-  async remove(code) {
-    const current = await this.get(code);
-    await this.guard(() => this.customers.delete(current.customer_id));
-  }
-
-  /** Đổi lỗi ràng buộc trung tính của repository thành mã nghiệp vụ. */
+  /** Đổi lỗi trùng khóa của CSDL (hai yêu cầu đồng thời cùng SĐT) thành mã nghiệp vụ DUPLICATE_PHONE. */
   async guard(action) {
     try {
       return await action();
     } catch (err) {
-      if (!(err instanceof ConstraintError)) throw err;
-      if (err.kind === 'DUPLICATE') {
+      if (err instanceof ConstraintError && err.kind === 'DUPLICATE') {
         throw new AppError('DUPLICATE_PHONE', 'Số điện thoại đã thuộc một hồ sơ khác.');
       }
-      throw new AppError('CUSTOMER_IN_USE',
-        'Hồ sơ đang được tham chiếu (bản ghi nhập, cặp nghi trùng hoặc hồ sơ đã gộp), không xóa được.');
+      throw err;
     }
   }
 }
