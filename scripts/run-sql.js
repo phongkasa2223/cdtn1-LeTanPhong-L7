@@ -1,7 +1,6 @@
 /**
- * Chạy lần lượt mọi file .sql trong một thư mục (migrations/ hoặc seeds/).
- * Dùng:  node --env-file=.env scripts/run-sql.js migrations
- * Các file đều viết để chạy lại được (IF NOT EXISTS / ON DUPLICATE KEY UPDATE).
+ * Chạy các file .sql trong một thư mục (migrations hoặc seeds).
+ * Dùng: node --env-file=.env scripts/run-sql.js migrations
  */
 const fs = require('node:fs');
 const path = require('node:path');

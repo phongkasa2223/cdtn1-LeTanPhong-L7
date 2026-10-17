@@ -27,7 +27,7 @@ const logger = {
   error: (m, c) => write('error', m, c),
 };
 
-/** Gắn requestId cho mỗi yêu cầu để lần theo một yêu cầu qua nhiều dòng log. */
+/** Gắn requestId cho mỗi request để dò log. */
 function attachRequestId(req, res, next) {
   req.requestId = req.headers['x-request-id'] || randomUUID();
   res.setHeader('X-Request-Id', req.requestId);

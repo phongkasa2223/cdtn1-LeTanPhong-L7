@@ -1,1 +1,1 @@
-// DqResult Repository – bảng dq_result – chưa hiện thực (Sprint 2).
+// TODO: DqResult Repository, bảng dq_result (Sprint 2)

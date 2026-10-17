@@ -13,7 +13,7 @@ const EMAIL_MAX = 100;
 const ADDRESS_MAX = 255;
 const LOCAL_PHONE_LENGTH = 10;
 
-/** NFR5: danh mục đầu số đọc từ file cấu hình, mã nguồn không chứa đầu số nào. */
+/** NFR5: đầu số đọc từ file cấu hình, không ghi cứng trong code. */
 function loadPhonePrefixes(file = PREFIX_FILE) {
   return JSON.parse(fs.readFileSync(file, 'utf8')).prefixes;
 }
@@ -32,10 +32,7 @@ function toIsoDate(text) {
   return valid ? `${year}-${month}-${day}` : null;
 }
 
-/**
- * Chuẩn hóa và kiểm tra một hồ sơ khách hàng (BR1–BR3, QT-02).
- * Chỉ biết dữ liệu trong bộ nhớ: không đụng HTTP, không đụng CSDL.
- */
+/** Chuẩn hóa và kiểm tra hồ sơ khách hàng (BR1–BR3, QT-02). Không đụng HTTP hay DB. */
 class RecordValidator {
   constructor(prefixes) {
     this.prefixes = new Set(prefixes);
@@ -45,7 +42,7 @@ class RecordValidator {
     return new RecordValidator(loadPhonePrefixes());
   }
 
-  /** QT-02: đưa SĐT về dạng 0xxxxxxxxx. Trả về { phone } hoặc { code, message }. */
+  /** QT-02: đưa SĐT về dạng 0xxxxxxxxx. Trả { phone } hoặc { code, message }. */
   normalizePhone(raw) {
     if (raw === undefined || raw === null || String(raw).trim() === '') {
       return { code: 'MISSING_FIELD', message: 'Thiếu số điện thoại.' };
@@ -68,10 +65,10 @@ class RecordValidator {
   }
 
   /**
-   * @param {object} input  { fullName, phone, email?, address?, birthDate?, createdDate? }
-   * @param {Date} today    mốc "hôm nay" để kiểm ngày không ở tương lai
+   * @param {object} input hồ sơ thô { fullName, phone, email?, address?, birthDate?, createdDate? }
+   * @param {Date} today mốc "hôm nay", để chặn ngày ở tương lai
    * @returns {object} dữ liệu đã chuẩn hóa
-   * @throws {ValidationError} kèm danh sách lỗi theo từng trường
+   * @throws {ValidationError} có danh sách lỗi theo từng trường
    */
   validateCustomer(input, today = new Date()) {
     const body = input && typeof input === 'object' ? input : {};

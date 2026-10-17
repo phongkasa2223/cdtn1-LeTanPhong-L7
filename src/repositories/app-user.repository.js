@@ -1,1 +1,1 @@
-// AppUser Repository – bảng app_user – chưa hiện thực (Sprint 2).
+// TODO: AppUser Repository, bảng app_user (Sprint 2)

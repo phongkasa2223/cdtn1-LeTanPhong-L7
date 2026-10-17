@@ -1,1 +1,1 @@
-// StgCustomer Repository – bảng stg_customer – chưa hiện thực (Sprint 2).
+// TODO: StgCustomer Repository, bảng stg_customer (Sprint 2)

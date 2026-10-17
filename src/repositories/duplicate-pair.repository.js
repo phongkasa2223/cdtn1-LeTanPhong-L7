@@ -1,1 +1,1 @@
-// DuplicatePair Repository – bảng duplicate_pair – chưa hiện thực (Sprint 2).
+// TODO: DuplicatePair Repository, bảng duplicate_pair (Sprint 2)

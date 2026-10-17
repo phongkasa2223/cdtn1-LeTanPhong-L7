@@ -1,1 +1,1 @@
-// DuplicateService – gộp / giữ riêng (BR4, BR5) – chưa hiện thực (Sprint 2).
+// TODO: DuplicateService, gộp / giữ riêng (Sprint 2)

@@ -9,10 +9,7 @@ const SELECT_CUSTOMER = `
     FROM customer c
     LEFT JOIN customer m ON m.customer_id = c.merged_into_id`;
 
-/**
- * Lớp truy cập dữ liệu – CHỈ đọc/ghi bảng customer.
- * Không có quy tắc nghiệp vụ; chỉ dịch lỗi của CSDL sang ConstraintError trung tính.
- */
+/** Chỉ đọc/ghi bảng customer, không có nghiệp vụ. Lỗi trùng khóa đổi sang ConstraintError. */
 class CustomerRepository {
   constructor(db) {
     this.db = db;
@@ -37,7 +34,7 @@ class CustomerRepository {
     return { rows, total };
   }
 
-  /** Thêm hồ sơ; mã hiển thị Cnnnnnn sinh từ khóa tự tăng, trong cùng một giao dịch. */
+  /** Thêm hồ sơ. Mã Cnnnnnn sinh từ id tự tăng, cùng một giao dịch. */
   async insert(data) {
     const conn = await this.db.getConnection();
     try {

@@ -3,7 +3,7 @@ const { AppError, ValidationError, ConstraintError } = require('../errors/AppErr
 const DEFAULT_PAGE_SIZE = 50;
 const MAX_PAGE_SIZE = 100;
 
-/** Dòng CSDL (snake_case) -> đối tượng trả về cho API (camelCase, customerId là mã hiển thị). */
+/** Dòng DB (snake_case) -> DTO của API (camelCase). */
 function toDto(row) {
   return {
     customerId: row.customer_code,
@@ -23,10 +23,7 @@ function parsePositiveInt(value, fallback) {
   return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
-/**
- * Lớp nghiệp vụ cho hồ sơ khách hàng. KHÔNG biết gì về HTTP hay SQL.
- * Nhận validator và repository qua hàm khởi tạo nên test được bằng đối tượng giả.
- */
+/** Nghiệp vụ khách hàng, không biết HTTP hay SQL. Nhận repository và validator qua constructor. */
 class CustomerService {
   constructor(customers, validator, now = () => new Date()) {
     this.customers = customers;
@@ -34,7 +31,7 @@ class CustomerService {
     this.now = now;
   }
 
-  /** QT-01: mỗi SĐT chỉ thuộc về một hồ sơ. */
+  /** QT-01: mỗi SĐT chỉ thuộc một hồ sơ. */
   async assertPhoneFree(phone, ownId = null) {
     const existing = await this.customers.findByPhone(phone);
     if (existing && existing.customer_id !== ownId) {
@@ -61,7 +58,7 @@ class CustomerService {
     return toDto(await this.get(code));
   }
 
-  /** FR7: tra cứu theo SĐT ở bất kỳ dạng nào (0901 234 567, +84901234567, ...). */
+  /** FR7: tra theo SĐT, viết dạng nào cũng được (0901 234 567, +84901234567...). */
   async findByPhone(rawPhone) {
     const phone = this.validator.normalizePhone(rawPhone);
     if (phone.code) {
@@ -85,7 +82,7 @@ class CustomerService {
 
   async update(code, input) {
     const current = await this.get(code);
-    // QT-13: hồ sơ đã gộp chỉ còn để tra cứu lịch sử, không sửa nữa.
+    // QT-13: hồ sơ đã gộp thì không sửa nữa.
     if (current.merged_into_id) {
       throw new AppError('CUSTOMER_MERGED', `Hồ sơ ${code} đã gộp vào ${current.merged_into_code}, không sửa được.`);
     }
@@ -95,7 +92,7 @@ class CustomerService {
     return this.getDto(code);
   }
 
-  /** Đổi lỗi trùng khóa của CSDL (hai yêu cầu đồng thời cùng SĐT) thành mã nghiệp vụ DUPLICATE_PHONE. */
+  /** Đổi lỗi trùng khóa của DB (2 request cùng SĐT cùng lúc) thành DUPLICATE_PHONE. */
   async guard(action) {
     try {
       return await action();

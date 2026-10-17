@@ -1,7 +1,4 @@
-/**
- * Lỗi nghiệp vụ mang MÃ nghiệp vụ (không phải mã HTTP).
- * Lớp service ném AppError; chỉ lớp routes mới đổi mã nghiệp vụ sang mã HTTP.
- */
+/** Lỗi nghiệp vụ, mang mã nghiệp vụ (chưa phải mã HTTP). Service ném, routes đổi sang mã HTTP. */
 class AppError extends Error {
   constructor(code, message, details = undefined) {
     super(message);
@@ -11,7 +8,7 @@ class AppError extends Error {
   }
 }
 
-/** Lỗi định dạng dữ liệu vào, do validator ném ra. */
+/** Lỗi sai định dạng dữ liệu vào. */
 class ValidationError extends AppError {
   constructor(message, details) {
     super('VALIDATION_ERROR', message, details);
@@ -19,10 +16,7 @@ class ValidationError extends AppError {
   }
 }
 
-/**
- * Lỗi ràng buộc của CSDL đã được repository dịch sang dạng trung tính:
- * kind = 'DUPLICATE' (trùng khóa duy nhất). Service quyết định đây là mã nghiệp vụ nào.
- */
+/** Lỗi ràng buộc DB, repository đổi sang dạng trung tính (kind = 'DUPLICATE'). */
 class ConstraintError extends Error {
   constructor(kind, message) {
     super(message);

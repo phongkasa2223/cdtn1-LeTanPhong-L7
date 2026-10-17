@@ -1,7 +1,4 @@
-/**
- * In số dòng của từng bảng. Dùng để kiểm phép thử "chạy lại được":
- * chạy migrate + seed hai lần, số dòng phải giữ nguyên.
- */
+/** In số dòng từng bảng, để kiểm "chạy lại được" (chạy 2 lần, số dòng không đổi). */
 const mysql = require('mysql2/promise');
 
 const TABLES = ['app_user', 'import_batch', 'customer', 'stg_customer', 'dq_result', 'duplicate_pair'];

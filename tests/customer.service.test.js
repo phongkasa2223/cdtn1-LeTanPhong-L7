@@ -6,7 +6,7 @@ const { ConstraintError } = require('../src/errors/AppError');
 
 const NOW = () => new Date('2026-10-17T08:00:00Z');
 
-/** Repository GIẢ trong bộ nhớ: đủ để thử quy tắc nghiệp vụ mà không cần CSDL. */
+/** Repository giả trong bộ nhớ, test không cần DB. */
 function fakeRepo(rows = [], hooks = {}) {
   const table = rows.map((r) => ({ ...r }));
   return {
@@ -35,7 +35,7 @@ const merged = { ...existing, customer_id: 2, customer_code: 'C000002', phone: '
   merged_into_id: 1, merged_into_code: 'C000001' };
 const service = (repo) => new CustomerService(repo, RecordValidator.fromConfig(), NOW);
 
-/* ================= LUỒNG ĐÚNG ================= */
+// --- Luồng đúng ---
 
 test('TC-S1 tạo hồ sơ: SĐT +84 được chuẩn hóa về 0xxxxxxxxx, ngày tạo mặc định là hôm nay', async () => {
   const dto = await service(fakeRepo()).create({ fullName: 'Trần Thị Bích', phone: '+84 912 345 678' });
@@ -44,7 +44,7 @@ test('TC-S1 tạo hồ sơ: SĐT +84 được chuẩn hóa về 0xxxxxxxxx, ngà
   assert.equal(dto.createdDate, '2026-10-17');
 });
 
-/* ================= QT-01: SĐT DUY NHẤT ================= */
+// --- QT-01: SĐT duy nhất ---
 
 test('TC-S2 QT-01: tạo hồ sơ có SĐT đã tồn tại (viết khác dạng) bị từ chối', async () => {
   await assert.rejects(
@@ -75,7 +75,7 @@ test('TC-S5 sửa SĐT sang số của hồ sơ khác bị từ chối', async (
   );
 });
 
-/* ================= QT-13: HỒ SƠ ĐÃ GỘP ================= */
+// --- QT-13: hồ sơ đã gộp ---
 
 test('TC-S6 QT-13: hồ sơ đã gộp không sửa được', async () => {
   await assert.rejects(
@@ -88,7 +88,7 @@ test('TC-S7 BR5: dịch vụ không có thao tác xóa hồ sơ khách hàng', (
   assert.equal(typeof service(fakeRepo()).remove, 'undefined');
 });
 
-/* ================= DỮ LIỆU SAI ================= */
+// --- Dữ liệu sai ---
 
 test('TC-S8 tra cứu hồ sơ không tồn tại trả CUSTOMER_NOT_FOUND', async () => {
   await assert.rejects(() => service(fakeRepo()).getDto('C999999'), (err) => err.code === 'CUSTOMER_NOT_FOUND');

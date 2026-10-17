@@ -1,11 +1,11 @@
 const express = require('express');
 const { handle } = require('./http-error');
 
-/** Lớp API – CRUD hồ sơ khách hàng. Không có quy tắc nghiệp vụ ở đây. */
+/** Routes khách hàng: chỉ nhận HTTP, không có nghiệp vụ. */
 module.exports = function customerRoutes(customerService) {
   const router = express.Router();
 
-  // E9 (FR7): ?phone= tra cứu theo SĐT; không có phone thì liệt kê có phân trang.
+  // E9: có ?phone= thì tra theo SĐT, không thì liệt kê có phân trang.
   router.get('/customers', handle(async (req, res) => {
     if (req.query.phone !== undefined) {
       res.json({ data: await customerService.findByPhone(req.query.phone) });
@@ -27,7 +27,7 @@ module.exports = function customerRoutes(customerService) {
     res.json({ data: await customerService.update(req.params.code, req.body) });
   }));
 
-  // Không có DELETE: BR5 (QT-13) cấm xóa vật lý hồ sơ khách hàng; hồ sơ trùng chỉ được gộp (UC5).
+  // Không có DELETE vì BR5 (QT-13): hồ sơ trùng chỉ được gộp.
 
   return router;
 };

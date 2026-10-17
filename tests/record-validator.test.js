@@ -6,7 +6,7 @@ const validator = RecordValidator.fromConfig();
 const TODAY = new Date('2026-10-17T00:00:00Z');
 const baseInput = { fullName: 'Nguyễn Văn An', phone: '0901234567' };
 
-/* ---------- QT-02: chuẩn hóa SĐT ---------- */
+// --- QT-02: chuẩn hóa SĐT ---
 
 test('TC-V1 các dạng viết khác nhau của cùng một SĐT đều về 0901234567', () => {
   for (const raw of ['0901234567', '0901 234 567', '84901234567', '+84 901.234.567', '(090) 123-4567']) {
@@ -21,7 +21,7 @@ test('TC-V2 SĐT sai được gắn đúng mã lỗi', () => {
   assert.equal(validator.normalizePhone('0101234567').code, 'PHONE_PREFIX');
 });
 
-/* ---------- NFR5: đầu số nằm trong file cấu hình ---------- */
+// --- NFR5: đầu số nằm trong file cấu hình ---
 
 test('TC-V3 thêm đầu số mới chỉ cần đổi danh mục, không đổi mã nguồn', () => {
   assert.equal(validator.normalizePhone('0111234567').code, 'PHONE_PREFIX');
@@ -29,7 +29,7 @@ test('TC-V3 thêm đầu số mới chỉ cần đổi danh mục, không đổi
   assert.equal(widened.normalizePhone('0111234567').phone, '0111234567');
 });
 
-/* ---------- Các trường còn lại ---------- */
+// --- Các trường còn lại ---
 
 test('TC-V4 chuẩn hóa họ tên, email và ngày dd/mm/yyyy', () => {
   const out = validator.validateCustomer({
