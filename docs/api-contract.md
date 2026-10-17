@@ -270,7 +270,33 @@ Content-Type: application/json
 | 401 | Chưa đăng nhập | `UNAUTHORIZED` |
 | 403 | Vai trò không phải DATA_STAFF | `FORBIDDEN` |
 | 404 | Không có cặp với `pairId` | `PAIR_NOT_FOUND` |
-| 409 | Cặp đã được xử lý trước đó (UC5-7a, US5-AC3, BR5) | `PAIR_ALREADY_DECIDED` |
+| 409 | Cặp đã được xử lý trước đó (UC5-7a, US5-AC3, BR4) | `PAIR_ALREADY_DECIDED` |
+
+### 3.5. CRUD hồ sơ khách hàng (Sprint 1, mở rộng E9 – xem `docs/thay-doi-thiet-ke.md` TD-06)
+
+`customerId` trong URL và trong phản hồi là mã hiển thị (ví dụ `C000013`). Trường nhận vào: `fullName`, `phone`, `email`, `address`, `birthDate`, `createdDate` (quy tắc ở mục 4). SĐT được chuẩn hóa về `0xxxxxxxxx` (QT-02) rồi kiểm tính duy nhất (QT-01).
+
+| Endpoint | Việc làm | Thành công |
+| :--- | :--- | :--- |
+| `GET /api/customers?page=&size=` | Liệt kê, `size` 1–100, mặc định 50 dòng/trang | 200 `{ data[], page, size, total }` |
+| `GET /api/customers?phone=` | Tra cứu theo SĐT ở mọi dạng viết (E9) | 200 `{ data }` |
+| `GET /api/customers/{customerId}` | Xem một hồ sơ | 200 `{ data }` |
+| `POST /api/customers` | Tạo hồ sơ; `createdDate` mặc định là hôm nay | 201 `{ data }` + `Location` |
+| `PUT /api/customers/{customerId}` | Thay toàn bộ trường sửa được (trường bỏ trống bị xóa giá trị) | 200 `{ data }` |
+| `DELETE /api/customers/{customerId}` | Xóa hồ sơ chưa được tham chiếu (**xem lưu ý BR5 bên dưới**) | 204 |
+
+| Mã | Khi nào | error.code |
+| :---: | :--- | :--- |
+| 400 | Trường sai định dạng; `details[]` liệt kê từng trường và mã lỗi (`MISSING_FIELD`, `PHONE_CHAR`, `PHONE_LENGTH`, `PHONE_PREFIX`, `EMAIL_INVALID`, `DATE_INVALID`, ...) | `VALIDATION_ERROR` |
+| 400 | `page`/`size` ngoài dải cho phép | `INVALID_PAGE` |
+| 404 | Không có hồ sơ theo mã hoặc theo SĐT | `CUSTOMER_NOT_FOUND` |
+| 409 | SĐT đã thuộc hồ sơ khác (QT-01); `details.customerId` là hồ sơ đang giữ số đó | `DUPLICATE_PHONE` |
+| 409 | Sửa hồ sơ đã gộp vào hồ sơ khác (QT-13) | `CUSTOMER_MERGED` |
+| 409 | Xóa hồ sơ còn bản ghi nhập, cặp nghi trùng hoặc hồ sơ đã gộp tham chiếu tới | `CUSTOMER_IN_USE` |
+
+**Lưu ý BR5 (QT-13):** quy tắc này cấm xóa vật lý hồ sơ khách hàng trong nghiệp vụ. `DELETE` chỉ có để hoàn thiện CRUD của Sprint 1 và chỉ xóa được hồ sơ không còn ai tham chiếu (khóa ngoại chặn phần còn lại). Từ Sprint 2 endpoint này bị bỏ hoặc giới hạn cho `DATA_MANAGER` – xem TD-06.
+
+Chưa hiện thực ở Sprint 1: xác thực (401/403), QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) – làm cùng E1 ở Sprint 2.
 
 ## 4. Quy tắc validation từng trường
 

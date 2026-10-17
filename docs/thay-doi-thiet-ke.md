@@ -40,3 +40,26 @@
                 chỉ để chạy thử không đem lại lợi ích trong phạm vi Sprint 1.
 - Ảnh hưởng   : Không đổi `architecture.drawio` và `erd.drawio` (đích triển khai vẫn là MySQL 8.0). Ghi chú ở README mục 2 và mục 6.
                 Hạn chế đã biết: chưa kiểm trên MySQL 8.0 thật.
+
+### TD-05 DDL thêm `IF NOT EXISTS` để chạy lại được
+
+- Phản hồi của GV : Không có – phát sinh từ yêu cầu phép thử "chạy lại được" của Buổi 8.
+- Quyết định  : SỬA
+- Lý do       : DDL của BT1 dùng `CREATE TABLE` trần, chạy lần hai sẽ báo "bảng đã tồn tại". Thêm `IF NOT EXISTS` cho cả 6 bảng;
+                seed dùng khóa chính tường minh và `ON DUPLICATE KEY UPDATE` nên chạy lại không nhân đôi dòng.
+- Ảnh hưởng   : `docs/schema.sql` và `migrations/001_init.sql` (hai file giống hệt nhau). Cấu trúc bảng, khóa, chỉ mục không đổi;
+                chạy migrate + seed hai lần cho cùng số dòng (xem `docs/ket-qua-migrate-seed-test.png`).
+
+### TD-06 Thêm endpoint CRUD khách hàng và dùng mã hiển thị làm định danh ở API
+
+- Phản hồi của GV : Không có – phát sinh khi chọn entity đầu tiên cho Sprint 1.
+- Quyết định  : SỬA
+- Lý do       : `api-contract.md` BT1 chỉ có E9 (`GET /customers?phone=`). Slide Buổi 8 yêu cầu CRUD đủ ba lớp cho entity chính, và `customer`
+                là entity trung tâm của L7. Định danh trong URL là mã hiển thị (`C000013`), khớp trường `customerId` trong hợp đồng API;
+                khóa số `customer_id` chỉ dùng trong CSDL.
+- Ảnh hưởng   : Thêm `GET /customers`, `GET/PUT/DELETE /customers/{customerId}`, `POST /customers` vào mục 3.5 của `docs/api-contract.md`.
+                Mã lỗi mới: `DUPLICATE_PHONE` (409), `CUSTOMER_NOT_FOUND` (404), `CUSTOMER_MERGED` (409), `CUSTOMER_IN_USE` (409).
+                QT-14 và QT-15 (cần biết người gọi) chưa hiện thực ở Sprint 1 vì xác thực JWT làm ở Sprint 2; ghi `[ ]` trong README mục 6.
+                **Mâu thuẫn đã biết với BR5 (QT-13):** BR5 cấm xóa vật lý hồ sơ khách hàng, nhưng `DELETE /customers/{id}` xóa vật lý.
+                Giảm nhẹ: khóa ngoại từ `stg_customer`, `duplicate_pair` và `merged_into_id` chặn xóa mọi hồ sơ đã phát sinh dữ liệu (trả 409 `CUSTOMER_IN_USE`),
+                nên chỉ xóa được hồ sơ vừa tạo nhầm. Hướng xử lý ở Sprint 2: bỏ endpoint hoặc chỉ cho `DATA_MANAGER`, vì khi đó mới có phân quyền.
