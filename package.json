@@ -6,6 +6,9 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node --env-file=.env src/server.js",
+    "migrate": "node --env-file=.env scripts/run-sql.js migrations",
+    "seed": "node --env-file=.env scripts/run-sql.js seeds",
+    "db:count": "node --env-file=.env scripts/count-rows.js",
     "test": "node --test"
   },
   "engines": { "node": ">=20.6" },

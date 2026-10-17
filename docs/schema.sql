@@ -2,7 +2,7 @@
 -- Khớp với docs/erd.drawio. Tên bảng theo case study Mekong Mobile (mục 7 – L7, mục 8 – từ điển dữ liệu).
 -- Mã yêu cầu ghi trong chú thích (FR, NFR, BR, QT = quy tắc trong Bảng 9.1 của case study).
 
-CREATE TABLE app_user (                                 -- Người dùng (NFR2, BR6)
+CREATE TABLE IF NOT EXISTS app_user (                                 -- Người dùng (NFR2, BR6)
   user_id        BIGINT       NOT NULL AUTO_INCREMENT,
   username       VARCHAR(50)  NOT NULL,
   password_hash  VARCHAR(255) NOT NULL,                 -- NFR2: không lưu mật khẩu dạng đọc được
@@ -14,7 +14,7 @@ CREATE TABLE app_user (                                 -- Người dùng (NFR2,
   UNIQUE KEY uk_user_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE import_batch (                             -- Lần nhập (FR1, FR3)
+CREATE TABLE IF NOT EXISTS import_batch (                             -- Lần nhập (FR1, FR3)
   import_batch_id BIGINT       NOT NULL AUTO_INCREMENT,
   import_code     VARCHAR(10)  NOT NULL,                -- ví dụ I001
   source          ENUM('RETAIL','WARRANTY') NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE import_batch (                             -- Lần nhập (FR1, FR
   CONSTRAINT fk_batch_user FOREIGN KEY (imported_by) REFERENCES app_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE customer (                                 -- Hồ sơ khách hàng (FR2, FR6, FR7) – mục 8 case study
+CREATE TABLE IF NOT EXISTS customer (                                 -- Hồ sơ khách hàng (FR2, FR6, FR7) – mục 8 case study
   customer_id    BIGINT       NOT NULL AUTO_INCREMENT,
   customer_code  VARCHAR(10)  NOT NULL,                 -- mã hiển thị, ví dụ C000123
   full_name      VARCHAR(120) NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE customer (                                 -- Hồ sơ khách hàng
   CONSTRAINT fk_customer_merged FOREIGN KEY (merged_into_id) REFERENCES customer (customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE stg_customer (                             -- Bản ghi nhập – vùng tạm (FR1, FR4, FR5)
+CREATE TABLE IF NOT EXISTS stg_customer (                             -- Bản ghi nhập – vùng tạm (FR1, FR4, FR5)
   stg_customer_id  BIGINT       NOT NULL AUTO_INCREMENT,
   import_batch_id  BIGINT       NOT NULL,
   row_no           INT          NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE stg_customer (                             -- Bản ghi nhập – 
   CONSTRAINT fk_stg_customer FOREIGN KEY (customer_id) REFERENCES customer (customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE dq_result (                                -- Kết quả kiểm tra – lỗi bản ghi (FR2, FR4, FR8)
+CREATE TABLE IF NOT EXISTS dq_result (                                -- Kết quả kiểm tra – lỗi bản ghi (FR2, FR4, FR8)
   dq_result_id     BIGINT       NOT NULL AUTO_INCREMENT,
   stg_customer_id  BIGINT       NOT NULL,
   rule_code        ENUM('MISSING_FIELD','PHONE_LENGTH','PHONE_PREFIX',
@@ -84,7 +84,7 @@ CREATE TABLE dq_result (                                -- Kết quả kiểm tr
   CONSTRAINT fk_dq_stg FOREIGN KEY (stg_customer_id) REFERENCES stg_customer (stg_customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE duplicate_pair (                           -- Cặp nghi trùng (FR2, FR6, FR8)
+CREATE TABLE IF NOT EXISTS duplicate_pair (                           -- Cặp nghi trùng (FR2, FR6, FR8)
   pair_id          BIGINT       NOT NULL AUTO_INCREMENT,
   pair_code        VARCHAR(10)  NOT NULL,               -- ví dụ P0007
   import_batch_id  BIGINT       NOT NULL,               -- lần nhập phát sinh cặp
