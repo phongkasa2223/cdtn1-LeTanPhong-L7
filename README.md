@@ -21,10 +21,9 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 ## 4. Cấu trúc thư mục
 | Thư mục | Nội dung |
 | :--- | :--- |
-| `docs/` | Tài liệu BT1: `srs.md`, `usecase.drawio`, `architecture.drawio`, `erd.drawio`, `schema.sql`, `wireframe.drawio`, `wireframe.png`, `api-contract.md`, `ai-disclosure.md`; bài nộp theo tuần trong `tuan1/`, `tuan2/` |
+| `docs/` | Tài liệu BT1: `srs.md`, `usecase.drawio`, `architecture.drawio`, `erd.drawio`, `schema.sql`, `wireframe.drawio`, `wireframe.png`, `api-contract.md`, `ai-disclosure.md` |
 | `src/` | Mã nguồn API (Node.js/Express) |
 | `tests/` | Kiểm thử tự động |
-| `data/` | File CSV khách hàng mẫu để thử chức năng nhập |
 
 ## 5. Kiểm thử
 *(Hoàn thiện ở BT2.)*
