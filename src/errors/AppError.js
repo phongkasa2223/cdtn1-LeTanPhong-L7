@@ -1,7 +1,7 @@
 /** Lỗi nghiệp vụ, mang mã nghiệp vụ (chưa phải mã HTTP). Service ném, routes đổi sang mã HTTP. */
 class AppError extends Error {
-  constructor(code, message, details = undefined) {
-    super(message);
+  constructor(code, message, details = undefined, options = undefined) {
+    super(message, options);
     this.name = 'AppError';
     this.code = code;
     if (details !== undefined) this.details = details;

@@ -1,21 +1,8 @@
 const { AppError, ValidationError, ConstraintError } = require('../errors/AppError');
+const { toCustomerView } = require('./customer.contract');
 
 const DEFAULT_PAGE_SIZE = 50;
 const MAX_PAGE_SIZE = 100;
-
-/** Dòng DB (snake_case) -> DTO của API (camelCase). */
-function toDto(row) {
-  return {
-    customerId: row.customer_code,
-    fullName: row.full_name,
-    phone: row.phone,
-    email: row.email,
-    address: row.address,
-    birthDate: row.birth_date,
-    createdDate: row.created_date,
-    mergedInto: row.merged_into_code || null,
-  };
-}
 
 function parsePositiveInt(value, fallback) {
   if (value === undefined) return fallback;
@@ -40,12 +27,12 @@ class CustomerService {
     }
   }
 
-  async create(input) {
+  async create(input, viewer) {
     const data = this.validator.validateCustomer(input, this.now());
     await this.assertPhoneFree(data.phone);
     data.createdDate = data.createdDate || this.now().toISOString().slice(0, 10);
     const code = await this.guard(() => this.customers.insert(data));
-    return toDto(await this.customers.findByCode(code));
+    return toCustomerView(await this.customers.findByCode(code), viewer);
   }
 
   async get(code) {
@@ -54,12 +41,12 @@ class CustomerService {
     return row;
   }
 
-  async getDto(code) {
-    return toDto(await this.get(code));
+  async getDto(code, viewer) {
+    return toCustomerView(await this.get(code), viewer);
   }
 
   /** FR7: tra theo SĐT, viết dạng nào cũng được (0901 234 567, +84901234567...). */
-  async findByPhone(rawPhone) {
+  async findByPhone(rawPhone, viewer) {
     const phone = this.validator.normalizePhone(rawPhone);
     if (phone.code) {
       throw new ValidationError('Số điện thoại tra cứu không hợp lệ.',
@@ -67,20 +54,20 @@ class CustomerService {
     }
     const row = await this.customers.findByPhone(phone.phone);
     if (!row) throw new AppError('CUSTOMER_NOT_FOUND', `Không có hồ sơ nào dùng số ${phone.phone}.`);
-    return toDto(row);
+    return toCustomerView(row, viewer);
   }
 
-  async list({ page, size } = {}) {
+  async list({ page, size } = {}, viewer) {
     const pageNo = parsePositiveInt(page, 1);
     const pageSize = parsePositiveInt(size, DEFAULT_PAGE_SIZE);
     if (pageNo === null || pageSize === null || pageSize > MAX_PAGE_SIZE) {
       throw new AppError('INVALID_PAGE', `page >= 1 và 1 <= size <= ${MAX_PAGE_SIZE}.`);
     }
     const { rows, total } = await this.customers.list({ page: pageNo, size: pageSize });
-    return { data: rows.map(toDto), page: pageNo, size: pageSize, total };
+    return { data: rows.map((row) => toCustomerView(row, viewer)), page: pageNo, size: pageSize, total };
   }
 
-  async update(code, input) {
+  async update(code, input, viewer) {
     const current = await this.get(code);
     // QT-13: hồ sơ đã gộp thì không sửa nữa.
     if (current.merged_into_id) {
@@ -89,7 +76,7 @@ class CustomerService {
     const data = this.validator.validateCustomer(input, this.now());
     await this.assertPhoneFree(data.phone, current.customer_id);
     await this.guard(() => this.customers.update(current.customer_id, data));
-    return this.getDto(code);
+    return this.getDto(code, viewer);
   }
 
   /** Đổi lỗi trùng khóa của DB (2 request cùng SĐT cùng lúc) thành DUPLICATE_PHONE. */
@@ -105,4 +92,4 @@ class CustomerService {
   }
 }
 
-module.exports = { CustomerService, toDto };
+module.exports = { CustomerService };

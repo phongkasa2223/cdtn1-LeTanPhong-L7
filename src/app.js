@@ -1,12 +1,19 @@
 const express = require('express');
 const { logger, attachRequestId } = require('./logger');
+const AppUserRepository = require('./repositories/app-user.repository');
 const CustomerRepository = require('./repositories/customer.repository');
+const { AuthService } = require('./services/auth.service');
 const { CustomerService } = require('./services/customer.service');
 const { RecordValidator } = require('./services/record-validator');
+const { authenticate } = require('./middleware/auth');
+const authRoutes = require('./routes/auth.routes');
 const customerRoutes = require('./routes/customer.routes');
 
 /** Lắp các lớp lại với nhau. Nhận pool từ ngoài để test không cần DB. */
-function buildApp(pool) {
+function buildApp(pool, {
+  jwtSecret = process.env.JWT_SECRET,
+  jwtExpiresIn = Number(process.env.JWT_EXPIRES_IN) || undefined,
+} = {}) {
   const app = express();
   app.use(express.json({ limit: '256kb' }));
   app.use(attachRequestId);
@@ -20,7 +27,11 @@ function buildApp(pool) {
     }
   });
 
+  const authService = new AuthService(new AppUserRepository(pool), { secret: jwtSecret, expiresIn: jwtExpiresIn });
   const customerService = new CustomerService(new CustomerRepository(pool), RecordValidator.fromConfig());
+
+  app.use('/api', authRoutes(authService)); // mở: đăng nhập
+  app.use('/api', authenticate(authService)); // từ đây trở xuống bắt buộc đăng nhập (NFR2)
   app.use('/api', customerRoutes(customerService));
 
   app.use((_req, res) => {
