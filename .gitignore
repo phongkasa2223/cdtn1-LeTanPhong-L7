@@ -17,6 +17,22 @@ npm-debug.log*
 *.dump
 db-dumps/
 
+# Dữ liệu lớn và file mô hình (không commit)
+data/*.csv
+*.pkl
+*.joblib
+*.pt
+*.h5
+
+# Python (nếu có script phụ)
+venv/
+.venv/
+__pycache__/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
 # Cấu hình IDE / hệ điều hành
 .idea/
 .vscode/settings.json

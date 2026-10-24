@@ -6,14 +6,24 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node --env-file=.env src/server.js",
+    "env:init": "node scripts/init-env.js",
+    "db:setup": "node --env-file=.env scripts/db-setup.js",
+    "gen:data": "node scripts/gen-sample-csv.js",
+    "build": "npm --prefix frontend ci && npm --prefix frontend run build",
+    "e2e": "node --env-file=.env scripts/e2e.js",
     "migrate": "node --env-file=.env scripts/run-sql.js migrations",
     "seed": "node --env-file=.env scripts/run-sql.js seeds",
     "db:count": "node --env-file=.env scripts/count-rows.js",
     "test": "node --test"
   },
-  "engines": { "node": ">=20.6" },
+  "engines": {
+    "node": ">=20.6"
+  },
   "dependencies": {
+    "csv-parse": "7.0.3",
     "express": "4.22.3",
+    "jsonwebtoken": "9.0.3",
+    "multer": "2.5.0",
     "mysql2": "3.24.6"
   }
 }
