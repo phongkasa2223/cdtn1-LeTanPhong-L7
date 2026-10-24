@@ -1,4 +1,6 @@
+const { randomBytes } = require('node:crypto');
 const { ConstraintError } = require('../errors/AppError');
+const { chunks } = require('./batching');
 
 const ER_DUP_ENTRY = 1062;
 const CODE_DIGITS = 6;
@@ -67,6 +69,70 @@ class CustomerRepository {
     } catch (err) {
       throw this.translate(err);
     }
+  }
+
+  /** Tra nhiều SĐT một lúc. Hồ sơ đã gộp trả về hồ sơ giữ lại (QT-13). Kết quả: Map SĐT -> customer_id. */
+  async findIdsByPhones(phones) {
+    const found = new Map();
+    for (const [, part] of chunks(phones)) {
+      const [rows] = await this.db.query(
+        'SELECT phone, COALESCE(merged_into_id, customer_id) AS target_id FROM customer WHERE phone IN (?)',
+        [part],
+      );
+      rows.forEach((r) => found.set(r.phone, r.target_id));
+    }
+    return found;
+  }
+
+  /** Thêm nhiều hồ sơ theo lô. Mã Cnnnnnn sinh từ id tự tăng, mã tạm có tiền tố ngẫu nhiên riêng cho lần gọi. */
+  async insertMany(rows) {
+    if (!rows.length) return;
+    const token = `T${randomBytes(2).toString('hex')}`;
+    try {
+      for (const [offset, part] of chunks(rows)) {
+        const values = part.map((r, i) => [
+          `${token}${(offset + i).toString(36)}`, r.fullName, r.phone, r.email, r.address, r.birthDate, r.createdDate,
+        ]);
+        await this.db.query(
+          `INSERT INTO customer (customer_code, full_name, phone, email, address, birth_date, created_date)
+           VALUES ?`,
+          [values],
+        );
+      }
+      await this.db.query(
+        `UPDATE customer SET customer_code = CONCAT('C', LPAD(customer_id, ${CODE_DIGITS}, '0')) WHERE customer_code LIKE ?`,
+        [`${token}%`],
+      );
+    } catch (err) {
+      throw this.translate(err);
+    }
+  }
+
+  /**
+   * Hồ sơ khác SĐT nhưng cùng email, hoặc cùng họ tên và ngày sinh với các hồ sơ mới (FR2, BR4).
+   * So sánh họ tên dựa vào collation utf8mb4_unicode_ci (không phân biệt hoa/thường và dấu), xem db:setup.
+   */
+  async findDuplicateCandidates(customerIds) {
+    const found = [];
+    const sources = [
+      ['EMAIL', 'b.email = a.email', 'a.email IS NOT NULL'],
+      ['NAME_BIRTHDATE', 'b.full_name = a.full_name AND b.birth_date = a.birth_date', 'a.birth_date IS NOT NULL'],
+    ];
+    for (const [, part] of chunks(customerIds)) {
+      for (const [matchedBy, joinOn, notNull] of sources) {
+        const [rows] = await this.db.query(
+          `SELECT a.customer_id AS a_id, b.customer_id AS b_id, a.full_name AS a_name, b.full_name AS b_name
+             FROM customer a JOIN customer b ON ${joinOn} AND b.customer_id <> a.customer_id
+            WHERE a.customer_id IN (?) AND ${notNull}
+              AND a.merged_into_id IS NULL AND b.merged_into_id IS NULL`,
+          [part],
+        );
+        rows.forEach((r) => found.push({
+          aId: r.a_id, bId: r.b_id, aName: r.a_name, bName: r.b_name, matchedBy,
+        }));
+      }
+    }
+    return found;
   }
 
   translate(err) {

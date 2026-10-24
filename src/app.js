@@ -2,12 +2,19 @@ const express = require('express');
 const { logger, attachRequestId } = require('./logger');
 const AppUserRepository = require('./repositories/app-user.repository');
 const CustomerRepository = require('./repositories/customer.repository');
+const DqResultRepository = require('./repositories/dq-result.repository');
+const DuplicatePairRepository = require('./repositories/duplicate-pair.repository');
+const ImportBatchRepository = require('./repositories/import-batch.repository');
+const StgCustomerRepository = require('./repositories/stg-customer.repository');
+const UnitOfWork = require('./repositories/unit-of-work');
 const { AuthService } = require('./services/auth.service');
 const { CustomerService } = require('./services/customer.service');
+const { ImportService } = require('./services/import.service');
 const { RecordValidator } = require('./services/record-validator');
 const { authenticate } = require('./middleware/auth');
 const authRoutes = require('./routes/auth.routes');
 const customerRoutes = require('./routes/customer.routes');
+const importRoutes = require('./routes/import.routes');
 
 /** Lắp các lớp lại với nhau. Nhận pool từ ngoài để test không cần DB. */
 function buildApp(pool, {
@@ -28,11 +35,30 @@ function buildApp(pool, {
   });
 
   const authService = new AuthService(new AppUserRepository(pool), { secret: jwtSecret, expiresIn: jwtExpiresIn });
-  const customerService = new CustomerService(new CustomerRepository(pool), RecordValidator.fromConfig());
+  const validator = RecordValidator.fromConfig();
+  const customerService = new CustomerService(new CustomerRepository(pool), validator);
+  // Phần ghi của một lần nhập chạy trong một giao dịch: các repository được gắn với kết nối của giao dịch (NFR3).
+  const importUow = new UnitOfWork(pool, (conn) => ({
+    batches: new ImportBatchRepository(conn),
+    stg: new StgCustomerRepository(conn),
+    dq: new DqResultRepository(conn),
+    customers: new CustomerRepository(conn),
+    pairs: new DuplicatePairRepository(conn),
+  }));
+  const importService = new ImportService({
+    uow: importUow,
+    read: {
+      batches: new ImportBatchRepository(pool),
+      stg: new StgCustomerRepository(pool),
+      dq: new DqResultRepository(pool),
+    },
+    validator,
+  });
 
   app.use('/api', authRoutes(authService)); // mở: đăng nhập
   app.use('/api', authenticate(authService)); // từ đây trở xuống bắt buộc đăng nhập (NFR2)
   app.use('/api', customerRoutes(customerService));
+  app.use('/api', importRoutes(importService));
 
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Đường dẫn không tồn tại.' } });
