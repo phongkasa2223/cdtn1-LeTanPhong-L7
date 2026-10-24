@@ -1,3 +1,5 @@
+const fs = require('node:fs');
+const path = require('node:path');
 const express = require('express');
 const { logger, attachRequestId } = require('./logger');
 const AppUserRepository = require('./repositories/app-user.repository');
@@ -18,12 +20,25 @@ const customerRoutes = require('./routes/customer.routes');
 const duplicatePairRoutes = require('./routes/duplicate-pair.routes');
 const importRoutes = require('./routes/import.routes');
 
+const FRONTEND_DIST = path.resolve(__dirname, '..', 'frontend', 'dist');
+const SECURITY_HEADERS = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Referrer-Policy': 'same-origin',
+  'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'",
+};
+
 /** Lắp các lớp lại với nhau. Nhận pool từ ngoài để test không cần DB. */
 function buildApp(pool, {
   jwtSecret = process.env.JWT_SECRET,
   jwtExpiresIn = Number(process.env.JWT_EXPIRES_IN) || undefined,
 } = {}) {
   const app = express();
+  app.disable('x-powered-by');
+  app.use((_req, res, next) => {
+    res.set(SECURITY_HEADERS);
+    next();
+  });
   app.use(express.json({ limit: '256kb' }));
   app.use(attachRequestId);
 
@@ -72,6 +87,12 @@ function buildApp(pool, {
   app.use('/api', customerRoutes(customerService));
   app.use('/api', importRoutes(importService));
   app.use('/api', duplicatePairRoutes(duplicateService));
+
+  // Chạy thật: Express phục vụ luôn bản build của frontend (một cổng, một lệnh npm start).
+  if (fs.existsSync(FRONTEND_DIST)) {
+    app.use(express.static(FRONTEND_DIST));
+    app.get(/^\/(?!api\/|health$).*/, (_req, res) => res.sendFile(path.join(FRONTEND_DIST, 'index.html')));
+  }
 
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Đường dẫn không tồn tại.' } });
