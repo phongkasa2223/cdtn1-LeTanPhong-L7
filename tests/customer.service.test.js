@@ -5,6 +5,8 @@ const { RecordValidator } = require('../src/services/record-validator');
 const { ConstraintError } = require('../src/errors/AppError');
 
 const NOW = () => new Date('2026-10-17T08:00:00Z');
+const MANAGER = { role: 'DATA_MANAGER' }; // thấy SĐT đầy đủ (QT-15)
+const STAFF = { role: 'DATA_STAFF' };
 
 /** Repository giả trong bộ nhớ, test không cần DB. */
 function fakeRepo(rows = [], hooks = {}) {
@@ -38,7 +40,7 @@ const service = (repo) => new CustomerService(repo, RecordValidator.fromConfig()
 // --- Luồng đúng ---
 
 test('TC-S1 tạo hồ sơ: SĐT +84 được chuẩn hóa về 0xxxxxxxxx, ngày tạo mặc định là hôm nay', async () => {
-  const dto = await service(fakeRepo()).create({ fullName: 'Trần Thị Bích', phone: '+84 912 345 678' });
+  const dto = await service(fakeRepo()).create({ fullName: 'Trần Thị Bích', phone: '+84 912 345 678' }, MANAGER);
   assert.equal(dto.customerId, 'C000001');
   assert.equal(dto.phone, '0912345678');
   assert.equal(dto.createdDate, '2026-10-17');
@@ -103,6 +105,14 @@ test('TC-S9 tạo hồ sơ với SĐT sai độ dài bị từ chối kèm mã P
 
 test('TC-S10 size vượt 100 bị từ chối, mặc định 50 dòng mỗi trang', async () => {
   const svc = service(fakeRepo([existing]));
-  await assert.rejects(() => svc.list({ size: '101' }), (err) => err.code === 'INVALID_PAGE');
-  assert.equal((await svc.list({})).size, 50);
+  await assert.rejects(() => svc.list({ size: '101' }, STAFF), (err) => err.code === 'INVALID_PAGE');
+  assert.equal((await svc.list({}, STAFF)).size, 50);
+});
+
+// --- QT-15: che SĐT theo vai trò ---
+
+test('TC-S11 QT-15: tra cứu theo SĐT, nhân viên nhận SĐT đã che còn quản lý nhận đầy đủ', async () => {
+  const svc = service(fakeRepo([existing]));
+  assert.equal((await svc.findByPhone('+84 901 234 567', STAFF)).phone, '090****567');
+  assert.equal((await svc.findByPhone('0901234567', MANAGER)).phone, '0901234567');
 });
