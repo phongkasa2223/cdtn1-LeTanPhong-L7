@@ -54,7 +54,9 @@ class CustomerService {
     }
     const row = await this.customers.findByPhone(phone.phone);
     if (!row) throw new AppError('CUSTOMER_NOT_FOUND', `Không có hồ sơ nào dùng số ${phone.phone}.`);
-    return toCustomerView(row, viewer);
+    // QT-13, US6-AC2: SĐT của hồ sơ đã gộp thì trả về hồ sơ giữ lại.
+    const target = row.merged_into_code ? await this.customers.findByCode(row.merged_into_code) : row;
+    return toCustomerView(target, viewer);
   }
 
   async list({ page, size } = {}, viewer) {

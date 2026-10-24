@@ -116,3 +116,10 @@ test('TC-S11 QT-15: tra cứu theo SĐT, nhân viên nhận SĐT đã che còn q
   assert.equal((await svc.findByPhone('+84 901 234 567', STAFF)).phone, '090****567');
   assert.equal((await svc.findByPhone('0901234567', MANAGER)).phone, '0901234567');
 });
+
+test('TC-S12 US6-AC2: tra bằng SĐT của hồ sơ đã gộp thì ra hồ sơ giữ lại', async () => {
+  const svc = service(fakeRepo([existing, merged]));
+  const found = await svc.findByPhone('0987654321', MANAGER);
+  assert.equal(found.customerId, 'C000001');
+  assert.equal(found.mergedInto, null);
+});
