@@ -9,11 +9,13 @@ const StgCustomerRepository = require('./repositories/stg-customer.repository');
 const UnitOfWork = require('./repositories/unit-of-work');
 const { AuthService } = require('./services/auth.service');
 const { CustomerService } = require('./services/customer.service');
+const { DuplicateService } = require('./services/duplicate.service');
 const { ImportService } = require('./services/import.service');
 const { RecordValidator } = require('./services/record-validator');
 const { authenticate } = require('./middleware/auth');
 const authRoutes = require('./routes/auth.routes');
 const customerRoutes = require('./routes/customer.routes');
+const duplicatePairRoutes = require('./routes/duplicate-pair.routes');
 const importRoutes = require('./routes/import.routes');
 
 /** Lắp các lớp lại với nhau. Nhận pool từ ngoài để test không cần DB. */
@@ -55,10 +57,21 @@ function buildApp(pool, {
     validator,
   });
 
+  // Một quyết định duyệt cặp cũng chạy trong một giao dịch (BR4, BR5).
+  const decisionUow = new UnitOfWork(pool, (conn) => ({
+    pairs: new DuplicatePairRepository(conn),
+    customers: new CustomerRepository(conn),
+  }));
+  const duplicateService = new DuplicateService({
+    uow: decisionUow,
+    read: { pairs: new DuplicatePairRepository(pool) },
+  });
+
   app.use('/api', authRoutes(authService)); // mở: đăng nhập
   app.use('/api', authenticate(authService)); // từ đây trở xuống bắt buộc đăng nhập (NFR2)
   app.use('/api', customerRoutes(customerService));
   app.use('/api', importRoutes(importService));
+  app.use('/api', duplicatePairRoutes(duplicateService));
 
   app.use((_req, res) => {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Đường dẫn không tồn tại.' } });

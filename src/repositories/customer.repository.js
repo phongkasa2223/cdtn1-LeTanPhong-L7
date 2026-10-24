@@ -135,6 +135,36 @@ class CustomerRepository {
     return found;
   }
 
+  /** Đọc và khóa dòng các hồ sơ (theo thứ tự id để hai giao dịch không khóa chéo nhau). */
+  async lockByIds(ids) {
+    const [rows] = await this.db.query(
+      `SELECT customer_id, customer_code, full_name, phone, email, address, birth_date, merged_into_id
+         FROM customer WHERE customer_id IN (?) ORDER BY customer_id FOR UPDATE`,
+      [ids],
+    );
+    return rows;
+  }
+
+  async setPhone(customerId, phone) {
+    try {
+      await this.db.query('UPDATE customer SET phone = ? WHERE customer_id = ?', [phone, customerId]);
+    } catch (err) {
+      throw this.translate(err);
+    }
+  }
+
+  /** QT-13: đánh dấu hồ sơ đã gộp vào hồ sơ giữ lại (không xóa); có thể đổi SĐT cùng lúc khi hoán đổi. */
+  async markMerged(customerId, keeperId, phone) {
+    try {
+      await this.db.query(
+        'UPDATE customer SET merged_into_id = ?, phone = COALESCE(?, phone) WHERE customer_id = ?',
+        [keeperId, phone ?? null, customerId],
+      );
+    } catch (err) {
+      throw this.translate(err);
+    }
+  }
+
   translate(err) {
     return err.errno === ER_DUP_ENTRY ? new ConstraintError('DUPLICATE', err.message) : err;
   }
