@@ -69,12 +69,68 @@ chứng của tiêu chí 3 (Nhất quán và Tích luỹ) trong rubric.
 - **Ảnh hưởng:** `src/routes/customer.routes.js`, `src/services/customer.service.js` (chỉ còn `guard` cho lỗi trùng SĐT),
   `docs/api-contract.md` mục 3.5 (ghi chú không có `DELETE`), `tests/customer.service.test.js` TC-S7.
 
-## 8. Hoãn xác thực JWT sang Sprint 2, nên QT-14 và QT-15 chưa làm
+## 8. Xác thực JWT: hoãn ở Buổi 8, làm xong ở Sprint 2 (QT-14, QT-15)
 
-- **Thay đổi gì:** API ở Sprint 1 chưa bắt đăng nhập, chưa có `POST /auth/login` (E1), chưa lọc dữ liệu theo cửa hàng
-  (QT-14) và chưa che SĐT cho Nhân viên dữ liệu (QT-15). Bảng, tài khoản mẫu và cột `store_code` đã có sẵn.
-- **Vì sao:** QT-14 và QT-15 cần biết ai đang gọi API nên phải có xác thực trước. Buổi 8 mục tiêu là module đầu tiên chạy được,
-  em làm xác thực trọn vẹn ở Sprint 2 thì dễ kiểm thử hơn là làm dở bây giờ.
-  **Hạn chế đã biết:** mọi endpoint đang mở, chưa dùng được cho môi trường thật, NFR2 chưa đạt.
-- **Ảnh hưởng:** `src/middleware/auth.js` (khung rỗng), `docs/api-contract.md` mục 3.5 (ghi chú chưa làm),
-  `README.md` mục 6 (mục `[ ]` cho QT-14, QT-15), `docs/srs.md` (NFR2).
+- **Thay đổi gì:** ở Buổi 8 em hoãn xác thực nên API còn mở. Ở Buổi 10 em làm `POST /auth/login` (E1) và mọi route khác đều cần token
+  (NFR2). Nhân viên chỉ thấy dữ liệu của cửa hàng mình (QT-14), SĐT che với nhân viên và chỉ quản lý thấy đầy đủ (QT-15).
+  Mật khẩu của tài khoản mẫu lưu dạng băm scrypt, token JWT HS256 hết hạn sau 3600 giây.
+- **Vì sao:** QT-14 và QT-15 cần biết ai đang gọi API nên phải có xác thực trước; giao diện cũng cần để làm yêu cầu "nhận 401 thì xóa
+  token, về trang đăng nhập". **Hạn chế đã biết:** chưa chặn đoán mật khẩu nhiều lần (không giới hạn số lần thử).
+- **Ảnh hưởng:** `src/middleware/auth.js`, `src/services/auth.service.js`, `src/routes/auth.routes.js`, `src/services/access-scope.js` (QT-14),
+  `src/services/customer.contract.js` (QT-15), `docs/api-contract.md` mục 3.6, `tests/auth.service.test.js`, `tests/auth.middleware.test.js`.
+
+## 9. Cắt phạm vi Sprint 2: giao diện chỉ có các màn hình của luồng chính
+
+- **Thay đổi gì:** giao diện có đăng nhập và 3 màn hình theo wireframe BT1 (MH1 nhập file, MH2 bản ghi lỗi, MH3 duyệt cặp). Em **cắt**
+  nút sửa bản ghi lỗi (UC4, E8), màn hình tra cứu khách hàng (UC6, API E9 vẫn có) và báo cáo chất lượng (UC7, E10).
+- **Vì sao:** slide Buổi 10 cho phép cắt chức năng phụ ngoài luồng chính. Ba story MUST (US1, US3, US5) chạy đủ từ nhập file đến gộp hồ sơ;
+  các story còn lại là SHOULD và có cách làm tạm.
+- **Ảnh hưởng:** `README.md` mục 6; `src/routes/record.routes.js`, `report.routes.js` và `src/services/report.service.js` vẫn là khung rỗng.
+  Wireframe và SRS không đổi.
+
+## 10. Dùng dữ liệu giả thay cho customers_raw.csv
+
+- **Thay đổi gì:** em chạy luồng chính trên file giả 3.000 dòng do `npm run gen:data` sinh ra (SĐT nhiều dạng, thiếu trường, trùng SĐT, trùng email,
+  trùng họ tên và ngày sinh), vì file thật không có trên E-learning và thầy cho phép dùng dữ liệu giả.
+- **Vì sao:** script cố định hạt giống nên ai chạy cũng ra đúng một file, nhờ vậy kiểm chứng được số lỗi (ví dụ 90 lỗi `PHONE_LENGTH`).
+  **Hạn chế đã biết:** file thật khoảng 65.000 dòng sẽ vượt giới hạn 5 MB (BR8) và vượt cơ sở đo NFR1 (3.000 dòng); khi có file thật phải
+  tách file hoặc nâng giới hạn rồi đo lại.
+- **Ảnh hưởng:** `scripts/gen-sample-csv.js`, `.gitignore` (không commit `data/*.csv`), `README.md` mục 3 và 6.
+
+## 11. Giữ nguyên định dạng lỗi của BT1
+
+- **Thay đổi gì:** slide Buổi 9 gợi ý lỗi có ba trường `error`, `message`, `fields`. Em **giữ nguyên** `{ error: { code, message, details } }` của BT1.
+- **Vì sao:** BT1 đã chấm và hợp đồng đã ghi rõ. Giao diện rẽ nhánh theo `error.code` (mã máy đọc), không theo câu chữ `message`, nên vẫn đúng tinh thần
+  của slide. Đổi định dạng là đổi hợp đồng đã nộp.
+- **Ảnh hưởng:** không có.
+
+## 12. Khi gộp mà chọn SĐT của hồ sơ bị gộp thì hai hồ sơ hoán đổi SĐT
+
+- **Thay đổi gì:** hợp đồng E6 bắt chọn SĐT giữ lại. Nếu chọn SĐT của hồ sơ bị gộp thì hai hồ sơ hoán đổi SĐT trong cùng một giao dịch (qua một SĐT tạm),
+  hồ sơ bị gộp trỏ tới hồ sơ giữ lại.
+- **Vì sao:** BR5 cấm xóa hồ sơ bị gộp nên nó vẫn giữ chỗ SĐT của nó; gán thẳng sẽ vi phạm ràng buộc SĐT duy nhất (QT-01). Hoán đổi thì tra bằng SĐT nào
+  cũng ra hồ sơ giữ lại.
+- **Ảnh hưởng:** `src/services/duplicate.service.js`, `docs/api-contract.md` mục 3.6, `tests/duplicate.service.test.js` TC-P5.
+
+## 13. Sửa lỗi tra SĐT của hồ sơ đã gộp (phát hiện khi chạy thử)
+
+- **Thay đổi gì:** khi chạy thử luồng gộp bằng curl, em thấy tra bằng SĐT cũ của hồ sơ bị gộp vẫn trả về hồ sơ bị gộp, trong khi US6-AC2 yêu cầu trả về
+  hồ sơ giữ lại. Em sửa `findByPhone` và thêm test TC-S12.
+- **Vì sao:** tra bằng SĐT cũ phải ra hồ sơ hiện hành.
+- **Ảnh hưởng:** `src/services/customer.service.js`, `tests/customer.service.test.js`.
+
+## 14. Express phục vụ luôn bản build giao diện, token lưu trong sessionStorage
+
+- **Thay đổi gì:** chạy thật chỉ cần `npm start` (một cổng 3000), Express phục vụ thư mục `frontend/dist`; khi phát triển dùng proxy của Vite nên không gặp lỗi CORS.
+  Token đăng nhập lưu trong `sessionStorage`, không dùng cookie `httpOnly`.
+- **Vì sao:** một lệnh chạy giúp README mục 3 ngắn gọn. sessionStorage đơn giản hơn cookie (không cần cấu hình CORS và CSRF) và mất khi đóng tab.
+  **Hạn chế đã biết:** nếu có lỗi XSS thì token đọc được; em giảm rủi ro bằng cách không dùng `dangerouslySetInnerHTML` và thêm header CSP.
+- **Ảnh hưởng:** `src/app.js`, `frontend/src/api/client.js`.
+
+## 15. Thêm npm run env:init và npm run db:setup để README mỗi bước một lệnh
+
+- **Thay đổi gì:** thêm `npm run env:init` (tạo `.env`, sinh mật khẩu ngẫu nhiên) và `npm run db:setup` (tạo database và tài khoản ứng dụng). Bỏ đoạn SQL nhiều câu
+  trong README.
+- **Vì sao:** máy em không có lệnh `mysql` trong PATH, và đoạn SQL nhiều câu trái yêu cầu "mỗi bước một lệnh". Hai script đọc `.env` nên chạy giống nhau ở mọi máy.
+- **Ảnh hưởng:** `scripts/init-env.js`, `scripts/db-setup.js`, `.env.example` (thêm `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`), `README.md` mục 3. Em đã clone repo sang
+  một thư mục mới và chạy đủ các bước.

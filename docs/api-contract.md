@@ -294,7 +294,17 @@ Content-Type: application/json
 
 **Không có `DELETE`:** BR5 (QT-13) cấm xóa vật lý hồ sơ khách hàng; hồ sơ trùng chỉ được gộp qua E6 (đánh dấu `mergedInto`). Vì vậy CRUD khách hàng ở Sprint 1 là tạo – xem – sửa – liệt kê/tra cứu (xem `docs/thay-doi-thiet-ke.md` mục 7).
 
-Chưa hiện thực ở Sprint 1: xác thực (401/403), QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) – làm cùng E1 ở Sprint 2.
+Xác thực (401/403), QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) đã được làm ở Sprint 2 cùng E1, xem mục 3.6.
+
+### 3.6. Bổ sung ở Sprint 2 (xem `docs/thay-doi-thiet-ke.md`)
+
+- **E7 `GET /api/imports?page&size`** (mới): `{ page, size, total, items: [{ importId, source, fileName, importedBy, importedAt, totalRecords, errorRecords }] }`, lần nhập mới nhất trước. Nhân viên chỉ thấy lần nhập của cửa hàng mình (QT-14), quản lý thấy toàn công ty. Lỗi: 400 `INVALID_PAGE`.
+- **E2:** phản hồi thêm `newCustomers` (hồ sơ mới tạo) và `attachedRecords` (dòng gắn vào hồ sơ có sẵn theo QT-01). Lỗi lúc lưu trả 500 `IMPORT_FAILED` kèm `requestId`, toàn bộ file đã được hủy (NFR3).
+- **E3:** chỉ liệt kê lỗi chưa khắc phục; `original` có đủ 6 cột của file; lần nhập của cửa hàng khác trả 404 `IMPORT_NOT_FOUND` (QT-14).
+- **E4, E5, E6:** nhân viên chỉ thấy cặp của cửa hàng mình (khác cửa hàng trả 404 `PAIR_NOT_FOUND`); SĐT che theo QT-15. Quản lý xem được E4 và E5 với SĐT đầy đủ nhưng bị 403 ở E6.
+- **E6:** nếu `fieldChoices.phone` trỏ tới hồ sơ bị gộp thì hai hồ sơ hoán đổi SĐT (SĐT là duy nhất, hồ sơ bị gộp vẫn còn nên vẫn giữ chỗ). Một trong hai hồ sơ đã gộp ở cặp khác thì trả 409 `CUSTOMER_MERGED`.
+- **E9:** tra bằng SĐT của hồ sơ đã gộp trả về hồ sơ giữ lại (US6-AC2).
+- Mọi route trừ `/health` và E1 đều cần `Authorization: Bearer <token>` (NFR2).
 
 ## 4. Quy tắc validation từng trường
 
