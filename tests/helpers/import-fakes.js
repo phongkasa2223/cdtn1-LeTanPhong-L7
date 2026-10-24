@@ -16,8 +16,10 @@ function createStore() {
   return { batches: [], customers: [], stg: [], dq: [], pairs: [] };
 }
 
-/** Thêm sẵn một hồ sơ vào kho (trước khi nhập). */
-function addCustomer(store, { fullName, phone, email = null, birthDate = null, mergedInto = null }) {
+/** Thêm sẵn một hồ sơ vào kho (trước khi nhập hoặc trước khi duyệt cặp). */
+function addCustomer(store, {
+  fullName, phone, email = null, address = null, birthDate = null, mergedInto = null,
+}) {
   const id = store.customers.length + 1;
   store.customers.push({
     customer_id: id,
@@ -25,10 +27,70 @@ function addCustomer(store, { fullName, phone, email = null, birthDate = null, m
     full_name: fullName,
     phone,
     email,
+    address,
     birth_date: birthDate,
     merged_into_id: mergedInto,
   });
   return id;
+}
+
+/** Thêm sẵn một cặp nghi trùng chờ duyệt; trả về mã cặp. */
+function addPair(store, {
+  batchId, aId, bId, matchedBy = 'EMAIL', similarity = 1,
+}) {
+  const id = store.pairs.length + 1;
+  const code = `P${pad(id, 4)}`;
+  store.pairs.push({
+    pair_id: id,
+    pair_code: code,
+    import_batch_id: batchId,
+    customer_a_id: aId,
+    customer_b_id: bId,
+    matched_by: matchedBy,
+    similarity,
+    status: 'PENDING',
+  });
+  return code;
+}
+
+/** Dòng truy vấn cặp (dạng phẳng a_*, b_*) giống câu SQL của repository thật; similarity là chuỗi như DECIMAL. */
+function pairRow(store, pair) {
+  const side = (id, p) => {
+    const c = store.customers.find((x) => x.customer_id === id);
+    return {
+      [`${p}_id`]: c.customer_id,
+      [`${p}_code`]: c.customer_code,
+      [`${p}_name`]: c.full_name,
+      [`${p}_phone`]: c.phone,
+      [`${p}_email`]: c.email ?? null,
+      [`${p}_address`]: c.address ?? null,
+      [`${p}_birth`]: c.birth_date ?? null,
+      [`${p}_merged`]: c.merged_into_id ?? null,
+      [`${p}_source`]: 'RETAIL',
+    };
+  };
+  const owner = USERS[store.batches.find((b) => b.import_batch_id === pair.import_batch_id).imported_by];
+  return {
+    pair_id: pair.pair_id,
+    pair_code: pair.pair_code,
+    matched_by: pair.matched_by,
+    similarity: Number(pair.similarity).toFixed(2),
+    status: pair.status,
+    decided_at: pair.decided_at ?? null,
+    decided_by_name: pair.decided_by ? USERS[pair.decided_by].username : null,
+    ...side(pair.customer_a_id, 'a'),
+    ...side(pair.customer_b_id, 'b'),
+    store_code: owner.storeCode,
+  };
+}
+
+const inScope = (row, scope) => !scope.restrict || row.store_code === scope.storeCode;
+
+/** Ràng buộc UNIQUE của cột phone, như CSDL thật. */
+function assertPhoneFree(store, customerId, phone) {
+  if (store.customers.some((c) => c.customer_id !== customerId && c.phone === phone)) {
+    throw new ConstraintError('DUPLICATE', 'trùng SĐT');
+  }
 }
 
 function makeRepos(store, hooks = {}) {
@@ -65,6 +127,31 @@ function makeRepos(store, hooks = {}) {
           addCustomer(store, r);
           Object.assign(store.customers.at(-1), { email: r.email, birth_date: r.birthDate, address: r.address });
         }
+      },
+      async lockByIds(ids) {
+        return store.customers.filter((c) => ids.includes(c.customer_id)).map((c) => ({ ...c }));
+      },
+      async update(customerId, data) {
+        assertPhoneFree(store, customerId, data.phone);
+        Object.assign(store.customers.find((c) => c.customer_id === customerId), {
+          full_name: data.fullName,
+          phone: data.phone,
+          email: data.email,
+          address: data.address,
+          birth_date: data.birthDate,
+        });
+      },
+      async setPhone(customerId, phone) {
+        assertPhoneFree(store, customerId, phone);
+        store.customers.find((c) => c.customer_id === customerId).phone = phone;
+      },
+      async markMerged(customerId, keeperId, phone) {
+        const target = store.customers.find((c) => c.customer_id === customerId);
+        if (phone !== undefined) {
+          assertPhoneFree(store, customerId, phone);
+          target.phone = phone;
+        }
+        target.merged_into_id = keeperId;
       },
       async findDuplicateCandidates(ids) {
         const found = [];
@@ -153,6 +240,25 @@ function makeRepos(store, hooks = {}) {
           });
         }
       },
+      async findByCode(code, scope) {
+        const pair = store.pairs.find((p) => p.pair_code === code);
+        if (!pair) return null;
+        const row = pairRow(store, pair);
+        return inScope(row, scope) ? row : null;
+      },
+      async list({ status, page, size, scope }) {
+        const rows = store.pairs.filter((p) => p.status === status)
+          .map((p) => pairRow(store, p)).filter((row) => inScope(row, scope))
+          .sort((x, y) => Number(y.similarity) - Number(x.similarity) || x.pair_id - y.pair_id);
+        return { rows: rows.slice((page - 1) * size, page * size), total: rows.length };
+      },
+      // BR4: chỉ người đầu tiên thắng. hooks.claimLost mô phỏng một nhân viên khác đã quyết định trước.
+      async decide(pairId, { status, userId }) {
+        const pair = store.pairs.find((p) => p.pair_id === pairId);
+        if (hooks.claimLost || pair.status !== 'PENDING') return false;
+        Object.assign(pair, { status, decided_by: userId, decided_at: '2026-10-24 11:00:00' });
+        return true;
+      },
       async countByBatch(batchId) {
         return store.pairs.filter((p) => p.import_batch_id === batchId).length;
       },
@@ -180,4 +286,10 @@ function makeReadRepos(store) {
   return { batches, stg, dq };
 }
 
-module.exports = { USERS, createStore, addCustomer, makeUow, makeReadRepos };
+function makeReadPairRepos(store) {
+  return { pairs: makeRepos(store).pairs };
+}
+
+module.exports = {
+  USERS, createStore, addCustomer, addPair, makeUow, makeReadRepos, makeReadPairRepos,
+};
