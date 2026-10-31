@@ -78,6 +78,27 @@ test('TC-I3 QT-01: SĐT đã có (viết khác dạng) thì gắn vào hồ sơ 
   assert.equal(store.stg[0].customer_id, existing);
 });
 
+test('TC-I11 BR5 + QT-01: SĐT của hồ sơ đã xóa mềm gặp lại trong file thì khôi phục hồ sơ đó, không tạo hồ sơ mới', async () => {
+  const { store, importFile } = setup();
+  const deleted = addCustomer(store, { fullName: 'Nguyễn Văn An', phone: '0901234567', deletedAt: '2026-10-20 09:00:00' });
+  const summary = await importFile(csv('Người Khác,0901234567,,,,2024-03-10'));
+  assert.equal(summary.newCustomers, 0);
+  assert.equal(summary.attachedRecords, 1);
+  assert.equal(store.customers.length, 1);
+  assert.equal(store.customers[0].deleted_at, null);
+  assert.equal(store.stg[0].customer_id, deleted);
+});
+
+test('TC-I12 hồ sơ đã xóa mềm không bị đưa vào cặp nghi trùng', async () => {
+  const { store, importFile } = setup();
+  addCustomer(store, {
+    fullName: 'Lê Văn Cũ', phone: '0987654321', email: 'chung@gmail.com', deletedAt: '2026-10-20 09:00:00',
+  });
+  const summary = await importFile(csv('Lê Văn Mới,0912345678,chung@gmail.com,,,2024-03-10'));
+  assert.equal(summary.newCustomers, 1);
+  assert.equal(summary.newDuplicatePairs, 0);
+});
+
 test('TC-I4 QT-01 + QT-13: SĐT của hồ sơ đã gộp thì gắn vào hồ sơ giữ lại', async () => {
   const { store, importFile } = setup();
   const keeper = addCustomer(store, { fullName: 'Lê Hoàng Nam', phone: '0932111222' });

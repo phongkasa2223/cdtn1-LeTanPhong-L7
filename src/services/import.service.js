@@ -109,6 +109,8 @@ class ImportService {
     // QT-01: SĐT đã có thì gắn vào hồ sơ có sẵn; chưa có thì tạo mới (dòng đầu của file tạo, các dòng sau gắn vào).
     const valid = records.filter((r) => r.check.customer);
     const customerIds = await repos.customers.findIdsByPhones([...new Set(valid.map((r) => r.check.customer.phone))]);
+    // BR5: hồ sơ đã xóa mềm mà gặp lại SĐT thì được khôi phục (QT-01: gắn vào hồ sơ có sẵn, không tạo hồ sơ mới).
+    await repos.customers.restoreByPhones([...customerIds.keys()]);
     const creating = new Set();
     const newCustomers = [];
     for (const r of valid) {

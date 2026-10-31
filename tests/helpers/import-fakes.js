@@ -18,7 +18,7 @@ function createStore() {
 
 /** Thêm sẵn một hồ sơ vào kho (trước khi nhập hoặc trước khi duyệt cặp). */
 function addCustomer(store, {
-  fullName, phone, email = null, address = null, birthDate = null, mergedInto = null,
+  fullName, phone, email = null, address = null, birthDate = null, mergedInto = null, deletedAt = null,
 }) {
   const id = store.customers.length + 1;
   store.customers.push({
@@ -30,6 +30,7 @@ function addCustomer(store, {
     address,
     birth_date: birthDate,
     merged_into_id: mergedInto,
+    deleted_at: deletedAt,
   });
   return id;
 }
@@ -121,6 +122,12 @@ function makeRepos(store, hooks = {}) {
         }
         return found;
       },
+      // BR5: SĐT của hồ sơ đã xóa mềm gặp lại thì khôi phục hồ sơ đó.
+      async restoreByPhones(phones) {
+        store.customers.forEach((c) => {
+          if (phones.includes(c.phone)) c.deleted_at = null;
+        });
+      },
       async insertMany(rows) {
         for (const r of rows) {
           if (store.customers.some((c) => c.phone === r.phone)) throw new ConstraintError('DUPLICATE', 'trùng SĐT');
@@ -155,7 +162,7 @@ function makeRepos(store, hooks = {}) {
       },
       async findDuplicateCandidates(ids) {
         const found = [];
-        const active = store.customers.filter((c) => !c.merged_into_id);
+        const active = store.customers.filter((c) => !c.merged_into_id && !c.deleted_at);
         for (const a of active.filter((c) => ids.includes(c.customer_id))) {
           for (const b of active.filter((c) => c.customer_id !== a.customer_id)) {
             const meta = { aId: a.customer_id, bId: b.customer_id, aName: a.full_name, bName: b.full_name };
