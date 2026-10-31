@@ -46,22 +46,23 @@ Chạy thử cả luồng bằng một lệnh (khi `npm start` đang chạy ở 
 npm run e2e          # đăng nhập, nhập file, xem lỗi, gộp một cặp, thử quyết định lần hai, tra SĐT của hồ sơ đã gộp
 ```
 
-Thử đủ bốn thao tác tạo – xem – sửa – xóa của hai thực thể (hồ sơ khách hàng và tài khoản) bằng curl, khi `npm start` đang chạy (Windows dùng Git Bash hoặc Postman):
+Thử đủ bốn thao tác tạo – xem – sửa – xóa của hai thực thể (hồ sơ khách hàng và tài khoản) bằng curl, khi `npm start` đang chạy (Windows dùng Git Bash hoặc Postman). Dữ liệu mẫu viết không dấu vì curl trên Windows đổi chữ có dấu trong tham số thành `?`; giao diện web và Postman gửi tiếng Việt có dấu bình thường:
 ```bash
 field() { node -pe "JSON.parse(require('fs').readFileSync(0)).$1"; }
 login() { curl -s -X POST localhost:3000/api/auth/login -H 'Content-Type: application/json' -d "{\"username\":\"$1\",\"password\":\"Demo@123\"}" | field accessToken; }
 STAFF=$(login nv.lan); MANAGER=$(login ql.hung)
+PHONE=$(node -pe '"091"+String(Math.floor(Math.random()*1e7)).padStart(7,"0")')   # SĐT giả ngẫu nhiên: SĐT của hồ sơ đã xóa vẫn bị giữ nên chạy lại khối này không bị trùng
 
 # Hồ sơ khách hàng (Nhân viên dữ liệu). Xóa là xóa MỀM: hồ sơ vẫn nằm trong bảng (BR5).
-CODE=$(curl -s -X POST localhost:3000/api/customers -H "Authorization: Bearer $STAFF" -H 'Content-Type: application/json' -d '{"fullName":"Phạm Thử","phone":"0911222333"}' | field data.customerId)   # tạo -> 201
+CODE=$(curl -s -X POST localhost:3000/api/customers -H "Authorization: Bearer $STAFF" -H 'Content-Type: application/json' -d "{\"fullName\":\"Pham Thu\",\"phone\":\"$PHONE\"}" | field data.customerId)   # tạo -> 201
 curl -s localhost:3000/api/customers/$CODE -H "Authorization: Bearer $STAFF"                                                                                                                         # xem
-curl -s -X PUT localhost:3000/api/customers/$CODE -H "Authorization: Bearer $STAFF" -H 'Content-Type: application/json' -d '{"fullName":"Phạm Thử Sửa","phone":"0911222333","address":"12 Lê Lợi"}'      # sửa
+curl -s -X PUT localhost:3000/api/customers/$CODE -H "Authorization: Bearer $STAFF" -H 'Content-Type: application/json' -d "{\"fullName\":\"Pham Thu Sua\",\"phone\":\"$PHONE\",\"address\":\"12 Le Loi\"}"      # sửa
 curl -s -i -X DELETE localhost:3000/api/customers/$CODE -H "Authorization: Bearer $STAFF"                                                                                                            # xóa mềm -> 204
 
 # Tài khoản (Quản lý dữ liệu). Tài khoản đã có lần nhập thì khóa ngoại chặn xóa (409 USER_HAS_HISTORY).
-ID=$(curl -s -X POST localhost:3000/api/users -H "Authorization: Bearer $MANAGER" -H 'Content-Type: application/json' -d '{"username":"nv.thu","password":"MatKhau123","fullName":"Chị Thu","role":"DATA_STAFF","storeCode":"CH03"}' | field data.userId)   # tạo -> 201
+ID=$(curl -s -X POST localhost:3000/api/users -H "Authorization: Bearer $MANAGER" -H 'Content-Type: application/json' -d '{"username":"nv.thu","password":"MatKhau123","fullName":"Chi Thu","role":"DATA_STAFF","storeCode":"CH03"}' | field data.userId)   # tạo -> 201
 curl -s localhost:3000/api/users/$ID -H "Authorization: Bearer $MANAGER"                                                                                                                              # xem
-curl -s -X PUT localhost:3000/api/users/$ID -H "Authorization: Bearer $MANAGER" -H 'Content-Type: application/json' -d '{"fullName":"Chị Thu Hà","role":"DATA_STAFF","storeCode":"CH02"}'                  # sửa
+curl -s -X PUT localhost:3000/api/users/$ID -H "Authorization: Bearer $MANAGER" -H 'Content-Type: application/json' -d '{"fullName":"Chi Thu Ha","role":"DATA_STAFF","storeCode":"CH02"}'                  # sửa
 curl -s -i -X DELETE localhost:3000/api/users/$ID -H "Authorization: Bearer $MANAGER"                                                                                                                 # xóa -> 204
 ```
 Dữ liệu sai bị từ chối kèm mã lỗi rõ ràng (ví dụ SĐT 8 số: `400 VALIDATION_ERROR`; tên đăng nhập trùng: `409 USERNAME_TAKEN`; file không phải UTF-8: `400 INVALID_ENCODING`). Tắt CSDL thì API trả `503 SERVICE_UNAVAILABLE` và giao diện báo "Hệ thống chưa kết nối được cơ sở dữ liệu" kèm nút Thử lại.
