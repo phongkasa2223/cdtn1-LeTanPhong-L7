@@ -25,6 +25,7 @@ const HTTP_BY_CODE = Object.freeze({
   CUSTOMER_MERGED: 409,
   PAIR_ALREADY_DECIDED: 409,
   IMPORT_FAILED: 500,
+  SERVICE_UNAVAILABLE: 503,
 });
 
 /** Lỗi nghiệp vụ trả JSON { error }; lỗi lạ chuyển cho handler cuối (500). */

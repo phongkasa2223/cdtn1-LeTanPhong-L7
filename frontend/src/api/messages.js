@@ -30,6 +30,11 @@ const MESSAGES = {
     'Có lỗi khi lưu nên toàn bộ file đã được hủy, chưa có bản ghi nào được lưu.',
     'Bấm Thử lại sau ít phút.',
   ],
+  SERVICE_UNAVAILABLE: [
+    'Hệ thống chưa kết nối được cơ sở dữ liệu.',
+    'Máy chủ cơ sở dữ liệu đang tắt hoặc tạm thời không phản hồi. Dữ liệu đã lưu không bị ảnh hưởng.',
+    'Bấm Thử lại sau ít phút. Nếu vẫn lỗi, báo mã tra cứu bên dưới cho người quản trị.',
+  ],
   IMPORT_NOT_FOUND: ['Không tìm thấy lần nhập.', 'Mã lần nhập không tồn tại hoặc thuộc đơn vị khác.', 'Chọn một lần nhập trong danh sách.'],
   PAIR_NOT_FOUND: ['Không tìm thấy cặp nghi trùng.', 'Mã cặp không tồn tại hoặc thuộc đơn vị khác.', 'Quay về danh sách để chọn cặp khác.'],
   PAIR_ALREADY_DECIDED: [
@@ -51,7 +56,7 @@ export function describeError(error) {
   const entry = MESSAGES[error?.code];
   if (entry) {
     const [what, why, next] = typeof entry === 'function' ? entry(error) : entry;
-    return { what, why, next, ref: null };
+    return { what, why, next, ref: error?.requestId ?? null };
   }
   return {
     what: 'Hệ thống đang gặp sự cố.',
