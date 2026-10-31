@@ -1,4 +1,4 @@
-const { logger } = require('../logger');
+const { logger, redactText } = require('../logger');
 
 /** Đổi mã nghiệp vụ (AppError.code) sang mã HTTP, theo docs/api-contract.md. */
 const HTTP_BY_CODE = Object.freeze({
@@ -36,7 +36,7 @@ function respondError(err, req, res, next) {
   }
   if (status >= 500) {
     logger.error('business error 5xx', {
-      requestId: req.requestId, code: err.code, cause: err.cause ? String(err.cause.message) : undefined,
+      requestId: req.requestId, code: err.code, cause: err.cause ? redactText(err.cause.message) : undefined,
     });
   }
   const error = { code: err.code, message: err.message };

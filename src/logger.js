@@ -27,16 +27,28 @@ const logger = {
   error: (m, c) => write('error', m, c),
 };
 
+/** Che mọi dãy từ 9 chữ số trở lên (có thể là SĐT) trong chuỗi sắp ghi log. */
+function redactText(text) {
+  return String(text ?? '').replace(/\d{9,}/g, '***');
+}
+
+/** Bỏ query string khỏi URL, vì query có thể chứa SĐT (GET /customers?phone=...). */
+function pathOnly(url) {
+  return String(url).split('?')[0];
+}
+
 /** Gắn requestId cho mỗi request để dò log. */
 function attachRequestId(req, res, next) {
   req.requestId = req.headers['x-request-id'] || randomUUID();
   res.setHeader('X-Request-Id', req.requestId);
   const startedAt = Date.now();
   res.on('finish', () => logger.info('request done', {
-    requestId: req.requestId, method: req.method, path: req.originalUrl,
+    requestId: req.requestId, method: req.method, path: pathOnly(req.originalUrl),
     status: res.statusCode, ms: Date.now() - startedAt,
   }));
   next();
 }
 
-module.exports = { logger, attachRequestId };
+module.exports = {
+  logger, attachRequestId, redactText, pathOnly,
+};

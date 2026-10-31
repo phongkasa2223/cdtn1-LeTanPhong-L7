@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const express = require('express');
-const { logger, attachRequestId } = require('./logger');
+const { logger, attachRequestId, redactText } = require('./logger');
 const AppUserRepository = require('./repositories/app-user.repository');
 const CustomerRepository = require('./repositories/customer.repository');
 const DqResultRepository = require('./repositories/dq-result.repository');
@@ -104,8 +104,9 @@ function buildApp(pool, {
       res.status(400).json({ error: { code: 'INVALID_JSON', message: 'Nội dung gửi lên không phải JSON hợp lệ.' } });
       return;
     }
+    // Dùng khóa `reason`, không dùng `message`: khóa này sẽ đè nhãn "unhandled error" của dòng log.
     logger.error('unhandled error', {
-      requestId: req.requestId, name: err.name, message: err.message,
+      requestId: req.requestId, name: err.name, code: err.code, reason: redactText(err.message),
     });
     res.status(500).json({
       error: { code: 'INTERNAL_ERROR', message: 'Đã xảy ra lỗi không mong đợi.', requestId: req.requestId },
