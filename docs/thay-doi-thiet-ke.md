@@ -60,6 +60,8 @@ chứng của tiêu chí 3 (Nhất quán và Tích luỹ) trong rubric.
 
 ## 7. Không làm thao tác xóa hồ sơ khách hàng (giữ BR5)
 
+> **Đã thay ở Bài tập 2:** mục 16 làm chữ D của CRUD bằng xóa mềm. Em giữ nguyên bản ghi này để thấy lịch sử quyết định.
+
 - **Thay đổi gì:** CRUD của Sprint 1 em chỉ làm tạo, xem, sửa, liệt kê và tra cứu. Em **giữ nguyên BR5**
   nên không có `DELETE /customers/{id}`. Hồ sơ đã gộp thì không sửa được (`CUSTOMER_MERGED`).
 - **Vì sao:** BR5 (QT-13) cấm xóa vật lý hồ sơ khách hàng, hồ sơ trùng chỉ được gộp và đánh dấu `merged_into_id`.
@@ -134,3 +136,68 @@ chứng của tiêu chí 3 (Nhất quán và Tích luỹ) trong rubric.
 - **Vì sao:** máy em không có lệnh `mysql` trong PATH, và đoạn SQL nhiều câu trái yêu cầu "mỗi bước một lệnh". Hai script đọc `.env` nên chạy giống nhau ở mọi máy.
 - **Ảnh hưởng:** `scripts/init-env.js`, `scripts/db-setup.js`, `.env.example` (thêm `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`), `README.md` mục 3. Em đã clone repo sang
   một thư mục mới và chạy đủ các bước.
+
+## 16. Xóa mềm hồ sơ khách hàng để đủ chữ D của CRUD (thay quyết định ở mục 7)
+
+- **Thay đổi gì:** thêm `DELETE /api/customers/{code}` (E17). Hồ sơ chỉ bị đánh dấu `deleted_at` (cột mới ở `migrations/002`), dòng vẫn nằm trong bảng; tra cứu, liệt kê
+  và tìm cặp nghi trùng bỏ qua hồ sơ đã xóa. Không xóa được hồ sơ đã gộp (`CUSTOMER_MERGED`), hồ sơ giữ lại của hồ sơ đã gộp (`CUSTOMER_HAS_MERGED`) và hồ sơ đang
+  trong cặp chờ duyệt (`CUSTOMER_IN_PENDING_PAIR`). SĐT của hồ sơ đã xóa vẫn được giữ (QT-01): tạo hoặc sửa sang số đó báo `DUPLICATE_PHONE`, còn nhập file gặp lại số
+  đó thì **khôi phục** hồ sơ và gắn bản ghi vào.
+- **Vì sao:** Bài tập 2 (S1) cần ít nhất hai thực thể đủ tạo – đọc – sửa – xóa. BR5 (QT-13) chỉ cấm xóa **vật lý** nên xóa mềm không vi phạm; mục 7 đã ghi đây là hướng sửa.
+  Nếu nhập file coi hồ sơ đã xóa là không tồn tại thì INSERT vi phạm khóa SĐT duy nhất và hủy cả file (NFR3); nếu gắn bản ghi vào mà không khôi phục thì bản ghi rơi vào
+  hồ sơ không ai thấy, nên em chọn khôi phục. Bảng vai trò trong SRS ghi nhân viên "không được xóa lần nhập hay hồ sơ (QT-13)": em hiểu là xóa vật lý và cho Nhân viên
+  dữ liệu xóa mềm hồ sơ như các thao tác ghi khác; lần nhập và bản ghi nhập vẫn không xóa được dưới mọi hình thức.
+- **Ảnh hưởng:** `migrations/002_customer_soft_delete.sql` (chạy lại được; `docs/schema.sql` và `docs/erd.drawio` của BT1 giữ nguyên, cột này chỉ có ở migration),
+  `seeds/001_demo.sql`, `src/repositories/customer.repository.js`, `duplicate-pair.repository.js`, `src/services/customer.service.js`, `import.service.js`,
+  `src/routes/customer.routes.js`, `docs/api-contract.md` mục 3.7, `tests/customer.service.test.js` (TC-S7 đổi nghĩa, thêm TC-S13 đến TC-S18),
+  `tests/import.service.test.js` (TC-I11, TC-I12).
+
+## 17. Thêm quản lý tài khoản, chỉ Quản lý dữ liệu được dùng
+
+- **Thay đổi gì:** thêm `GET/POST /api/users` và `GET/PUT/DELETE /api/users/{id}` (E12 đến E16). Tên đăng nhập không đổi sau khi tạo; Nhân viên dữ liệu phải có mã đơn vị,
+  Quản lý dữ liệu thì không (QT-14); không tự xóa tài khoản đang đăng nhập; không xóa hay hạ vai trò Quản lý dữ liệu cuối cùng; tài khoản đã có lần nhập hoặc quyết định
+  duyệt cặp bị khóa ngoại chặn xóa (`USER_HAS_HISTORY`); mật khẩu 8 đến 72 ký tự có chữ và số, lưu băm scrypt, dữ liệu trả ra không bao giờ có mật khẩu.
+- **Vì sao:** thực thể thứ hai của S1. `app_user` nằm ngoài BR5 nên xóa vật lý được và không phải đổi cấu trúc bảng. SRS ở BT1 chỉ có hai vai trò và **không có use case quản
+  lý tài khoản**, nên đây là use case mới em thêm cho BT2. Em giao cho Quản lý dữ liệu vì đó là vai trò chịu trách nhiệm chung toàn công ty; nhân viên không tự cấp tài khoản.
+- **Ảnh hưởng:** `src/services/user.service.js`, `user.contract.js`, `src/routes/user.routes.js`, `src/repositories/app-user.repository.js`, `src/app.js`,
+  `docs/api-contract.md` mục 3.7, `tests/user.service.test.js` (TC-U1 đến TC-U14).
+
+## 18. Xác thực đọc lại tài khoản từ CSDL ở mỗi request
+
+- **Thay đổi gì:** `AuthService.verifyToken` thành bất đồng bộ: sau khi kiểm chữ ký và hạn, đọc người dùng theo id; không còn thì `UNAUTHORIZED`. Vai trò và đơn vị lấy từ
+  CSDL, không lấy từ token.
+- **Vì sao:** có xóa tài khoản thì token cũ không được dùng tiếp, nếu không nhập file bằng token đó sẽ vỡ khóa ngoại `imported_by`. Đổi vai trò cũng có hiệu lực ngay. Cái giá
+  là mỗi request có thêm một truy vấn theo khóa chính.
+- **Ảnh hưởng:** `src/services/auth.service.js`, `src/middleware/auth.js`, `tests/auth.service.test.js` (TC-A7, TC-A8), `tests/auth.middleware.test.js` (TC-M6).
+
+## 19. Mất kết nối CSDL trả 503 `SERVICE_UNAVAILABLE`
+
+- **Thay đổi gì:** `src/db.js` bọc pool; mã lỗi `ECONNREFUSED`, `ETIMEDOUT`, `PROTOCOL_CONNECTION_LOST`... đổi thành `SERVICE_UNAVAILABLE` ở một chỗ duy nhất. Middleware lỗi trả
+  503 kèm `requestId` và log đúng một dòng; giao diện hiện thông báo ba phần và mã tra cứu. Trước đó đăng nhập khi DB tắt trả 500 "Đã xảy ra lỗi không mong đợi".
+- **Vì sao:** Buổi 11 và bước chấm "tắt một thành phần rồi thử lại": hệ thống phải báo lỗi rõ ràng và không treo (kết nối chờ tối đa 3 giây). `/health` đã trả 503 từ trước,
+  giờ cả API cũng nhất quán.
+- **Ảnh hưởng:** `src/db.js`, `src/routes/http-error.js`, `frontend/src/api/messages.js`, `docs/api-contract.md` mục 2 và 3.7, `tests/db.test.js` (TC-N1 đến TC-N5),
+  `tests/http-error.test.js` (TC-H1 đến TC-H4).
+
+## 20. Log không ghi query string, che SĐT trong thông báo lỗi
+
+- **Thay đổi gì:** dòng log request chỉ ghi đường dẫn, bỏ phần `?query`; thông báo lỗi gốc được che mọi dãy từ 9 chữ số trước khi ghi log; log lỗi cuối dùng khóa `reason`
+  để không đè mất nhãn dòng log.
+- **Vì sao:** Buổi 11 cấm ghi SĐT vào log, mà tra cứu theo SĐT (E9) đặt số trong query nên số lọt vào log; thông báo trùng khóa của MySQL cũng chứa giá trị trùng.
+- **Ảnh hưởng:** `src/logger.js`, `src/app.js`, `src/routes/http-error.js`, `tests/logger.test.js` (TC-L1 đến TC-L3).
+
+## 21. Từ chối file CSV không phải UTF-8
+
+- **Thay đổi gì:** file CSV lưu theo mã hóa ANSI (Excel cũ) hoặc file nhị phân bị từ chối `400 INVALID_ENCODING` trước khi tạo lần nhập. Trước đó file ANSI được nhận (201)
+  và tên bị hỏng chữ có dấu.
+- **Vì sao:** BR8 quy định file CSV UTF-8. Em phát hiện khi thử các file sai (bước chấm 4): `buffer.toString('utf8')` không bao giờ báo lỗi nên không có gì chặn.
+- **Ảnh hưởng:** `src/services/import.service.js`, `src/routes/http-error.js`, `frontend/src/api/messages.js`, `docs/api-contract.md` mục 3.7,
+  `tests/import.service.test.js` (TC-I13).
+
+## 22. Hạn chế đã biết của Bài tập 2
+
+- **Thay đổi gì:** em chưa xử lý bốn chỗ. (1) Đơn vị của một lần nhập suy ra từ `app_user.store_code` **hiện tại**, nên đổi đơn vị của nhân viên đã có lần nhập sẽ chuyển luôn
+  các lần nhập và cặp nghi trùng cũ sang đơn vị mới. (2) Hồ sơ khách hàng không gắn với đơn vị, nên nhân viên đơn vị nào cũng xóa mềm hoặc sửa được hồ sơ bất kỳ. (3) Gộp cặp
+  chưa kiểm lại `deleted_at`, và kiểm tra "Quản lý cuối cùng" không khóa dòng, nên hai yêu cầu chồng nhau trong vài mili giây có thể cùng qua. (4) Chưa chặn đoán mật khẩu nhiều lần.
+- **Vì sao:** (1) và (2) cần thêm cột đơn vị vào lần nhập và hồ sơ, tức đổi ERD; (3) hiếm khi xảy ra; em ưu tiên các việc kiểm chứng được trước hạn nộp.
+- **Ảnh hưởng:** `src/services/user.service.js`, `customer.service.js`, `duplicate.service.js`; chưa có test cho bốn trường hợp này.

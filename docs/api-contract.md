@@ -23,21 +23,29 @@ API theo kiểu REST, trao đổi dữ liệu JSON (riêng chức năng nhập f
 | E9 | GET | `/api/customers?phone=` | Tra cứu khách hàng theo SĐT | US6 – UC6 – FR7 |
 | E10 | GET | `/api/reports/imports` | Báo cáo chất lượng theo lần nhập | US7 – UC7 – FR8 |
 | E11 | GET | `/health` | Kiểm tra tình trạng hệ thống | Smoke test (Buổi 2) |
+| E12 | GET | `/api/users` | Danh sách tài khoản (chỉ Quản lý dữ liệu) | Bài tập 2 (S1) |
+| E13 | GET | `/api/users/{id}` | Xem một tài khoản | Bài tập 2 (S1) |
+| E14 | POST | `/api/users` | Tạo tài khoản | Bài tập 2 (S1) |
+| E15 | PUT | `/api/users/{id}` | Sửa tài khoản | Bài tập 2 (S1) |
+| E16 | DELETE | `/api/users/{id}` | Xóa tài khoản chưa có lịch sử | Bài tập 2 (S1) |
+| E17 | DELETE | `/api/customers/{customerId}` | Xóa mềm hồ sơ khách hàng | Bài tập 2 (S1), BR5 |
 
-*E1–E6 phục vụ 3 story MUST (US1, US3, US5) và được đặc tả chi tiết ở mục 3; E7–E11 phục vụ story SHOULD và sẽ đặc tả chi tiết khi hiện thực ở BT2.*
+*E1–E6 phục vụ 3 story MUST (US1, US3, US5) và được đặc tả chi tiết ở mục 3. E7 và E9 đã hiện thực ở Sprint 2 (mục 3.5, 3.6); E8 (sửa bản ghi lỗi) và E10 (báo cáo) chưa làm, xem `README.md` mục 6. E12–E17 thêm ở Bài tập 2 và đặc tả ở mục 3.7.*
 
 ## 2. Quy ước chung
 
 | Mã HTTP | Ý nghĩa trong hệ thống |
 | :--- | :--- |
 | 200 OK | Đọc dữ liệu hoặc thực hiện thao tác thành công. |
-| 201 Created | Tạo mới thành công (lần nhập). |
+| 201 Created | Tạo mới thành công (lần nhập, hồ sơ, tài khoản). |
+| 204 No Content | Xóa thành công, không có nội dung trả về (E16, E17). |
 | 400 Bad Request | Dữ liệu gửi lên sai: thiếu trường, sai kiểu, sai giá trị cho phép. |
 | 401 Unauthorized | Chưa đăng nhập, token hết hạn hoặc sai tên đăng nhập/mật khẩu. |
 | 403 Forbidden | Đã đăng nhập nhưng vai trò không được phép (ví dụ Nhân viên dữ liệu gọi báo cáo). |
 | 404 Not Found | Không tìm thấy lần nhập, bản ghi hoặc cặp nghi trùng theo mã. |
 | 409 Conflict | Xung đột trạng thái (ví dụ cặp nghi trùng đã được xử lý). |
-| 500 Internal Server Error | Lỗi phía máy chủ; giao dịch được hủy toàn bộ (NFR3). |
+| 500 Internal Server Error | Lỗi phía máy chủ; giao dịch được hủy toàn bộ (NFR3). Kèm `requestId` để tra log. |
+| 503 Service Unavailable | Không kết nối được cơ sở dữ liệu (`SERVICE_UNAVAILABLE`); dữ liệu đã lưu không bị ảnh hưởng, thử lại sau. Kèm `requestId`. |
 
 Mọi phản hồi lỗi có cùng cấu trúc:
 
@@ -292,7 +300,7 @@ Content-Type: application/json
 | 409 | SĐT đã thuộc hồ sơ khác (QT-01); `details.customerId` là hồ sơ đang giữ số đó | `DUPLICATE_PHONE` |
 | 409 | Sửa hồ sơ đã gộp vào hồ sơ khác (QT-13) | `CUSTOMER_MERGED` |
 
-**Không có `DELETE`:** BR5 (QT-13) cấm xóa vật lý hồ sơ khách hàng; hồ sơ trùng chỉ được gộp qua E6 (đánh dấu `mergedInto`). Vì vậy CRUD khách hàng ở Sprint 1 là tạo – xem – sửa – liệt kê/tra cứu (xem `docs/thay-doi-thiet-ke.md` mục 7).
+**Xóa:** ở Sprint 1 không có `DELETE` vì BR5 (QT-13) cấm xóa vật lý hồ sơ khách hàng (`docs/thay-doi-thiet-ke.md` mục 7). Bài tập 2 thêm **xóa mềm** (E17, mục 3.7): hồ sơ vẫn nằm trong bảng, chỉ đánh dấu đã xóa; hồ sơ trùng vẫn chỉ được gộp qua E6 (đánh dấu `mergedInto`).
 
 Xác thực (401/403), QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) đã được làm ở Sprint 2 cùng E1, xem mục 3.6.
 
@@ -305,6 +313,52 @@ Xác thực (401/403), QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) �
 - **E6:** nếu `fieldChoices.phone` trỏ tới hồ sơ bị gộp thì hai hồ sơ hoán đổi SĐT (SĐT là duy nhất, hồ sơ bị gộp vẫn còn nên vẫn giữ chỗ). Một trong hai hồ sơ đã gộp ở cặp khác thì trả 409 `CUSTOMER_MERGED`.
 - **E9:** tra bằng SĐT của hồ sơ đã gộp trả về hồ sơ giữ lại (US6-AC2).
 - Mọi route trừ `/health` và E1 đều cần `Authorization: Bearer <token>` (NFR2).
+
+### 3.7. Bổ sung ở Bài tập 2 (xem `docs/thay-doi-thiet-ke.md` mục 16 đến 21)
+
+**E17 `DELETE /api/customers/{customerId}`: xóa mềm hồ sơ.** Chỉ `DATA_STAFF`. Hồ sơ chỉ bị đánh dấu đã xóa (cột `deleted_at`), vẫn nằm trong bảng (BR5); sau đó tra cứu (E9), liệt kê và tìm cặp nghi trùng không còn thấy hồ sơ. SĐT của hồ sơ đã xóa vẫn được giữ (QT-01): `POST` hoặc `PUT` với số đó trả 409 `DUPLICATE_PHONE` kèm `details.deleted = true`; nhập file (E2) gặp lại số đó thì khôi phục hồ sơ và gắn bản ghi vào.
+
+| Mã | Khi nào | error.code |
+| :---: | :--- | :--- |
+| 204 | Xóa thành công, không có nội dung trả về | |
+| 403 | Người gọi là `DATA_MANAGER` | `FORBIDDEN` |
+| 404 | Không có hồ sơ theo mã, hoặc hồ sơ đã xóa rồi | `CUSTOMER_NOT_FOUND` |
+| 409 | Hồ sơ đã gộp vào hồ sơ khác (QT-13) | `CUSTOMER_MERGED` |
+| 409 | Hồ sơ đang là hồ sơ giữ lại của hồ sơ đã gộp | `CUSTOMER_HAS_MERGED` |
+| 409 | Hồ sơ đang nằm trong cặp nghi trùng chờ duyệt, phải duyệt cặp trước | `CUSTOMER_IN_PENDING_PAIR` |
+
+**E12 đến E16: quản lý tài khoản.** Chỉ `DATA_MANAGER`; `DATA_STAFF` gọi trả 403 `FORBIDDEN`. Dữ liệu `data` của một tài khoản là `{ userId, username, fullName, role, storeCode, createdAt }`, **không bao giờ có mật khẩu hay mã băm** (NFR2).
+
+| Endpoint | Việc làm | Thành công |
+| :--- | :--- | :--- |
+| `GET /api/users?page=&size=` (E12) | Liệt kê, `size` 1–100, mặc định 50 | 200 `{ page, size, total, items[] }` |
+| `GET /api/users/{id}` (E13) | Xem một tài khoản | 200 `{ data }` |
+| `POST /api/users` (E14) | Body: `username`, `password`, `fullName`, `role`, `storeCode` | 201 `{ data }` + `Location` |
+| `PUT /api/users/{id}` (E15) | Body: `fullName`, `role`, `storeCode`; `password` chỉ gửi khi muốn đổi; `username` không đổi được | 200 `{ data }` |
+| `DELETE /api/users/{id}` (E16) | Xóa tài khoản chưa có lịch sử | 204 |
+
+| Trường | Bắt buộc | Quy tắc |
+| :--- | :---: | :--- |
+| `username` | Khi tạo | 3–50 ký tự: chữ thường, số, dấu chấm, gạch dưới; không đổi sau khi tạo |
+| `password` | Khi tạo | 8–72 ký tự, có ít nhất một chữ cái và một chữ số; lưu băm scrypt |
+| `fullName` | Có | 2–100 ký tự sau khi bỏ khoảng trắng thừa |
+| `role` | Có | `DATA_STAFF` hoặc `DATA_MANAGER` |
+| `storeCode` | Với `DATA_STAFF` | 2–10 ký tự chữ hoa hoặc số (nhập chữ thường thì tự viết hoa); `DATA_MANAGER` phải bỏ trống (QT-14) |
+
+| Mã | Khi nào | error.code |
+| :---: | :--- | :--- |
+| 400 | Trường sai; `details[]` liệt kê từng trường với `field` và `code` (`INVALID_FORMAT`, `INVALID_LENGTH`, `INVALID_VALUE`, `IMMUTABLE`) | `VALIDATION_ERROR` |
+| 400 | `id` trong đường dẫn không phải số nguyên dương; `page`/`size` ngoài dải | `VALIDATION_ERROR`, `INVALID_PAGE` |
+| 404 | Không có tài khoản theo `id` | `USER_NOT_FOUND` |
+| 409 | Tên đăng nhập đã dùng | `USERNAME_TAKEN` |
+| 409 | Tự xóa tài khoản đang đăng nhập | `CANNOT_DELETE_SELF` |
+| 409 | Xóa hoặc hạ vai trò Quản lý dữ liệu cuối cùng | `LAST_MANAGER` |
+| 409 | Tài khoản đã có lần nhập hoặc quyết định duyệt cặp, khóa ngoại chặn xóa | `USER_HAS_HISTORY` |
+
+**Thay đổi chung:**
+- **Xác thực:** token chỉ có giá trị khi tài khoản còn tồn tại; vai trò và đơn vị lấy từ CSDL ở mỗi request. Tài khoản đã bị xóa thì mọi route trả 401 `UNAUTHORIZED`.
+- **503 `SERVICE_UNAVAILABLE`:** mọi route trả 503 kèm `requestId` khi không kết nối được CSDL; `/health` trả `{ "status": "degraded", "db": "unreachable" }`.
+- **E2:** thêm lỗi 400 `INVALID_ENCODING` khi file không phải văn bản UTF-8 (ví dụ CSV lưu ANSI từ Excel cũ).
 
 ## 4. Quy tắc validation từng trường
 
