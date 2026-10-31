@@ -11,10 +11,10 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 **quản lý dữ liệu** xem báo cáo tỷ lệ lỗi theo từng lần nhập để theo dõi chất lượng dữ liệu.
 
 ## 2. Yêu cầu môi trường
-- Node.js 20.6 trở lên (đã thử trên Node 24) và npm
+- Node.js 20.6 trở lên (đã thử trên Node 24, xem `.nvmrc`) và npm
 - MySQL 8.0 hoặc MariaDB 10.4 trở lên đang chạy (đang thử trên MariaDB 10.4.32 của XAMPP, xem `docs/thay-doi-thiet-ke.md` mục 4). Cần một tài khoản quản trị để tạo database, mặc định `root` không mật khẩu như XAMPP; đổi bằng `DB_ADMIN_USER` và `DB_ADMIN_PASSWORD` trong `.env`
 - Trình duyệt hiện đại (Chrome, Edge hoặc Firefox)
-- Biến môi trường: xem `.env.example` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`)
+- Biến môi trường: xem `.env.example` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_POOL_MAX`, `DB_TZ_OFFSET`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `LOG_LEVEL`; `E2E_BASE_URL` và `E2E_PASSWORD` chỉ dùng cho `npm run e2e`)
 
 ## 3. Hướng dẫn chạy
 Mỗi bước một lệnh, chạy trong thư mục gốc của repo:
