@@ -61,3 +61,6 @@ ON DUPLICATE KEY UPDATE
   pair_code = VALUES(pair_code), import_batch_id = VALUES(import_batch_id),
   customer_a_id = VALUES(customer_a_id), customer_b_id = VALUES(customer_b_id),
   matched_by = VALUES(matched_by), similarity = VALUES(similarity), status = VALUES(status);
+
+-- Chạy lại seed đưa 12 hồ sơ mẫu về trạng thái chưa xóa mềm (cột deleted_at thêm ở migrations/002).
+UPDATE customer SET deleted_at = NULL WHERE customer_id BETWEEN 1 AND 12;
