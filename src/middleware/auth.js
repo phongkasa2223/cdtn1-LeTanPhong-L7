@@ -1,13 +1,16 @@
 const { AppError } = require('../errors/AppError');
 const { respondError } = require('../routes/http-error');
 
-/** Bắt buộc đăng nhập (NFR2): đọc Bearer token, gắn req.user = { userId, username, role, storeCode }. */
+/**
+ * Bắt buộc đăng nhập (NFR2): đọc Bearer token, gắn req.user = { userId, username, role, storeCode }.
+ * verifyToken kiểm cả việc tài khoản còn tồn tại nên phải chờ kết quả.
+ */
 function authenticate(authService) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     try {
       const [scheme, token] = (req.headers.authorization || '').split(' ');
       if (scheme !== 'Bearer' || !token) throw new AppError('UNAUTHORIZED', 'Chưa đăng nhập.');
-      req.user = authService.verifyToken(token);
+      req.user = await authService.verifyToken(token);
       next();
     } catch (err) {
       respondError(err, req, res, next);

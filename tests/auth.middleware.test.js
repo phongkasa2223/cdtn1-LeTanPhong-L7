@@ -55,3 +55,12 @@ test('TC-M5 chưa đăng nhập mà gọi route cần vai trò thì cũng bị t
   const out = await run(requireRole('DATA_STAFF'), {});
   assert.equal(out.status, 403);
 });
+
+test('TC-M6 verifyToken bất đồng bộ bị từ chối (ví dụ tài khoản đã xóa) thì trả 401 và không cho đi tiếp', async () => {
+  const asyncService = {
+    verifyToken: async () => { throw new AppError('UNAUTHORIZED', 'Tài khoản không còn tồn tại.'); },
+  };
+  const out = await run(authenticate(asyncService), { headers: { authorization: 'Bearer bat-ky' } });
+  assert.equal(out.status, 401);
+  assert.equal(out.nextCalled, false);
+});
