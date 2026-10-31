@@ -29,7 +29,7 @@ function safeStorage(key) {
       try {
         sessionStorage.removeItem(key);
       } catch {
-        // Không làm gì.
+        // Không xóa được thì thôi: token cũ vẫn bị máy chủ từ chối (401) và người dùng được đưa về trang đăng nhập.
       }
     },
   };
