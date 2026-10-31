@@ -99,6 +99,17 @@ test('TC-I12 hồ sơ đã xóa mềm không bị đưa vào cặp nghi trùng',
   assert.equal(summary.newDuplicatePairs, 0);
 });
 
+test('TC-I13 BR8: file CSV không phải UTF-8 (lưu ANSI từ Excel cũ) bị từ chối INVALID_ENCODING, không lưu gì', async () => {
+  const { store, importFile } = setup();
+  const ansi = Buffer.concat([
+    Buffer.from(`${HEADER}\r\nNguy`, 'latin1'), Buffer.from([0xea]), Buffer.from('n V', 'latin1'), Buffer.from([0xe3]),
+    Buffer.from('n An,0903111222,,,,2024-03-10', 'latin1'),
+  ]);
+  await assert.rejects(() => importFile(ansi), (err) => err.code === 'INVALID_ENCODING');
+  assert.equal(store.batches.length, 0);
+  assert.equal(store.customers.length, 0);
+});
+
 test('TC-I4 QT-01 + QT-13: SĐT của hồ sơ đã gộp thì gắn vào hồ sơ giữ lại', async () => {
   const { store, importFile } = setup();
   const keeper = addCustomer(store, { fullName: 'Lê Hoàng Nam', phone: '0932111222' });

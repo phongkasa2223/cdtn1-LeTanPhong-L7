@@ -17,6 +17,11 @@ const MESSAGES = {
     'Đăng nhập bằng tài khoản Nhân viên dữ liệu hoặc liên hệ quản lý.',
   ],
   INVALID_FILE_TYPE: ['File không phải CSV.', 'Chỉ nhận file có đuôi .csv.', 'Chọn lại file xuất từ hệ thống bán lẻ hoặc bảo hành.'],
+  INVALID_ENCODING: [
+    'File không đọc được dưới dạng CSV UTF-8.',
+    'File lưu theo mã hóa cũ (ANSI) làm hỏng chữ có dấu, hoặc không phải file văn bản.',
+    'Mở bằng Excel, chọn Lưu thành, định dạng CSV UTF-8, rồi nhập lại.',
+  ],
   FILE_TOO_LARGE: ['File lớn hơn 5 MB.', 'Mỗi lần nhập tối đa 5 MB.', 'Tách thành nhiều file nhỏ rồi nhập từng file.'],
   MISSING_COLUMNS: (e) => [
     'File thiếu cột bắt buộc.',

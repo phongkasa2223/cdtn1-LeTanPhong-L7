@@ -17,9 +17,17 @@ const RAW_WIDTH = {
 
 const clip = (value, width) => (value === undefined || value === null || value === '' ? null : String(value).slice(0, width));
 
-/** Đọc CSV (UTF-8, có hoặc không BOM; phân cách dấu phẩy hoặc chấm phẩy như file xuất từ Excel). */
+/**
+ * Đọc CSV (UTF-8, có hoặc không BOM; phân cách dấu phẩy hoặc chấm phẩy như file xuất từ Excel).
+ * Giải mã nghiêm ngặt: file lưu ANSI (Excel cũ) hay file nhị phân bị từ chối, vì nếu cứ đọc thì chữ có dấu bị hỏng (BR8).
+ */
 function parseCsv(buffer) {
-  const text = buffer.toString('utf8');
+  let text;
+  try {
+    text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+  } catch (err) {
+    throw new AppError('INVALID_ENCODING', 'File không phải văn bản CSV mã hóa UTF-8.', undefined, { cause: err });
+  }
   const firstLine = text.replace(/^﻿/, '').split(/\r?\n/, 1)[0];
   const delimiter = firstLine.split(';').length > firstLine.split(',').length ? ';' : ',';
   let header = [];
