@@ -99,6 +99,7 @@ legend { font-weight: 600; padding: 0 0.4rem; }
 .tile { display: grid; gap: 0.1rem; padding: 0.8rem 1rem; border-left: 4px solid var(--line); background: var(--paper); }
 .tile strong { font-size: var(--step-1); font-variant-numeric: tabular-nums; }
 .tile span { color: var(--muted); font-size: 0.9rem; }
+.tile small { color: var(--muted); font-size: 0.8rem; }
 .tile.good { border-color: var(--good); }
 .tile.bad { border-color: var(--bad); }
 .tile.warn { border-color: #d89a00; }

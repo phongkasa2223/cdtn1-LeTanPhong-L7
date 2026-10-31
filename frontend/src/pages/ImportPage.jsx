@@ -4,14 +4,17 @@ import { uploadImport } from '../api/imports.api.js';
 import { session } from '../api/client.js';
 import DataState from '../components/DataState.jsx';
 import {
-  RULE_LABELS, SOURCE_LABELS, formatDateTime, formatNumber,
+  RULE_LABELS, SOURCE_LABELS, formatDateTime, formatNumber, formatRate,
 } from '../labels.js';
 
-function Tile({ label, value, tone }) {
+function Tile({
+  label, value, tone, hint,
+}) {
   return (
     <div className={`tile ${tone ?? ''}`}>
       <strong>{formatNumber(value)}</strong>
       <span>{label}</span>
+      {hint && <small>{hint}</small>}
     </div>
   );
 }
@@ -24,8 +27,18 @@ function ImportResult({ data }) {
       <h2>Đã nhập lần {data.importId}</h2>
       <div className="tiles">
         <Tile label="Tổng bản ghi" value={data.totalRecords} />
-        <Tile label="Hợp lệ" value={data.validRecords} tone="good" />
-        <Tile label="Có lỗi" value={data.errorRecords} tone={data.errorRecords ? 'bad' : ''} />
+        <Tile
+          label="Hợp lệ"
+          value={data.validRecords}
+          tone="good"
+          hint={`${formatRate(data.validRecords, data.totalRecords)} tổng số bản ghi`}
+        />
+        <Tile
+          label="Có lỗi"
+          value={data.errorRecords}
+          tone={data.errorRecords ? 'bad' : ''}
+          hint={`${formatRate(data.errorRecords, data.totalRecords)} tổng số bản ghi`}
+        />
         <Tile label="Hồ sơ mới tạo" value={data.newCustomers} />
         <Tile label="Gắn vào hồ sơ có sẵn" value={data.attachedRecords} />
         <Tile label="Cặp nghi trùng mới" value={data.newDuplicatePairs} tone={data.newDuplicatePairs ? 'warn' : ''} />

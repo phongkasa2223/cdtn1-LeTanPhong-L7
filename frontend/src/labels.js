@@ -27,6 +27,12 @@ export const formatNumber = (n) => new Intl.NumberFormat('vi-VN').format(n);
 /** 0.93 -> "93%" */
 export const formatPercent = (ratio) => `${Math.round(ratio * 100)}%`;
 
+/** 120 trên 3000 -> "4%"; có thập phân khi cần: 7 trên 3000 -> "0,2%". */
+export function formatRate(part, total) {
+  if (!total) return '—';
+  return `${new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 }).format((part / total) * 100)}%`;
+}
+
 /** "2026-10-24T10:38:05+07:00" -> "24/10/2026 10:38" */
 export function formatDateTime(iso) {
   if (!iso) return '—';
