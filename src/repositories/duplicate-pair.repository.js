@@ -88,6 +88,16 @@ class DuplicatePairRepository {
     return result.affectedRows === 1;
   }
 
+  /** Số cặp CHỜ DUYỆT có hồ sơ này; hồ sơ còn nằm trong cặp chờ duyệt thì chưa được xóa. */
+  async countPendingOf(customerId) {
+    const [[{ total }]] = await this.db.query(
+      `SELECT COUNT(*) AS total FROM duplicate_pair
+        WHERE status = 'PENDING' AND (customer_a_id = ? OR customer_b_id = ?)`,
+      [customerId, customerId],
+    );
+    return Number(total);
+  }
+
   async countByBatch(batchId) {
     const [[{ total }]] = await this.db.query(
       'SELECT COUNT(*) AS total FROM duplicate_pair WHERE import_batch_id = ?', [batchId],

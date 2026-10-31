@@ -28,7 +28,11 @@ module.exports = function customerRoutes(customerService) {
     res.json({ data: await customerService.update(req.params.code, req.body, req.user) });
   }));
 
-  // Không có DELETE vì BR5 (QT-13): hồ sơ trùng chỉ được gộp.
+  // Xóa MỀM (BR5 chỉ cấm xóa vật lý): hồ sơ vẫn còn trong bảng, chỉ đánh dấu deleted_at.
+  router.delete('/customers/:code', requireRole('DATA_STAFF'), handle(async (req, res) => {
+    await customerService.remove(req.params.code);
+    res.status(204).end();
+  }));
 
   return router;
 };

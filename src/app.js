@@ -53,7 +53,12 @@ function buildApp(pool, {
 
   const authService = new AuthService(new AppUserRepository(pool), { secret: jwtSecret, expiresIn: jwtExpiresIn });
   const validator = RecordValidator.fromConfig();
-  const customerService = new CustomerService(new CustomerRepository(pool), validator);
+  // Xóa mềm hồ sơ chạy trong một giao dịch: khóa dòng rồi mới kiểm tra các điều kiện chặn xóa.
+  const customerUow = new UnitOfWork(pool, (conn) => ({
+    customers: new CustomerRepository(conn),
+    pairs: new DuplicatePairRepository(conn),
+  }));
+  const customerService = new CustomerService(new CustomerRepository(pool), validator, () => new Date(), customerUow);
   // Phần ghi của một lần nhập chạy trong một giao dịch: các repository được gắn với kết nối của giao dịch (NFR3).
   const importUow = new UnitOfWork(pool, (conn) => ({
     batches: new ImportBatchRepository(conn),

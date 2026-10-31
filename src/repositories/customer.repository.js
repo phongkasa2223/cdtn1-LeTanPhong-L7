@@ -7,32 +7,41 @@ const CODE_DIGITS = 6;
 
 const SELECT_CUSTOMER = `
   SELECT c.customer_id, c.customer_code, c.full_name, c.phone, c.email, c.address,
-         c.birth_date, c.created_date, c.merged_into_id, m.customer_code AS merged_into_code
+         c.birth_date, c.created_date, c.merged_into_id, c.deleted_at, m.customer_code AS merged_into_code
     FROM customer c
     LEFT JOIN customer m ON m.customer_id = c.merged_into_id`;
 
-/** Chỉ đọc/ghi bảng customer, không có nghiệp vụ. Lỗi trùng khóa đổi sang ConstraintError. */
+/**
+ * Chỉ đọc/ghi bảng customer, không có nghiệp vụ. Lỗi trùng khóa đổi sang ConstraintError.
+ * Xóa mềm (BR5): hồ sơ có deleted_at thì các truy vấn thường bỏ qua; chỉ includeDeleted mới thấy.
+ */
 class CustomerRepository {
   constructor(db) {
     this.db = db;
   }
 
-  async findByCode(code) {
-    const [rows] = await this.db.query(`${SELECT_CUSTOMER} WHERE c.customer_code = ?`, [code]);
+  async findByCode(code, { includeDeleted = false } = {}) {
+    const [rows] = await this.db.query(
+      `${SELECT_CUSTOMER} WHERE c.customer_code = ? AND (? = 1 OR c.deleted_at IS NULL)`,
+      [code, includeDeleted ? 1 : 0],
+    );
     return rows[0] || null;
   }
 
-  async findByPhone(phone) {
-    const [rows] = await this.db.query(`${SELECT_CUSTOMER} WHERE c.phone = ?`, [phone]);
+  async findByPhone(phone, { includeDeleted = false } = {}) {
+    const [rows] = await this.db.query(
+      `${SELECT_CUSTOMER} WHERE c.phone = ? AND (? = 1 OR c.deleted_at IS NULL)`,
+      [phone, includeDeleted ? 1 : 0],
+    );
     return rows[0] || null;
   }
 
   async list({ page, size }) {
     const [rows] = await this.db.query(
-      `${SELECT_CUSTOMER} ORDER BY c.customer_id LIMIT ? OFFSET ?`,
+      `${SELECT_CUSTOMER} WHERE c.deleted_at IS NULL ORDER BY c.customer_id LIMIT ? OFFSET ?`,
       [size, (page - 1) * size],
     );
-    const [[{ total }]] = await this.db.query('SELECT COUNT(*) AS total FROM customer');
+    const [[{ total }]] = await this.db.query('SELECT COUNT(*) AS total FROM customer WHERE deleted_at IS NULL');
     return { rows, total };
   }
 
@@ -69,6 +78,26 @@ class CustomerRepository {
     } catch (err) {
       throw this.translate(err);
     }
+  }
+
+  /** Xóa mềm: chỉ đánh dấu deleted_at, không xóa dòng (BR5). Điều kiện được phép xóa do service kiểm. */
+  async softDelete(customerId) {
+    await this.db.query('UPDATE customer SET deleted_at = NOW() WHERE customer_id = ?', [customerId]);
+  }
+
+  /** QT-01: SĐT của hồ sơ đã xóa mềm gặp lại trong file nhập thì khôi phục hồ sơ đó. */
+  async restoreByPhones(phones) {
+    for (const [, part] of chunks(phones)) {
+      await this.db.query('UPDATE customer SET deleted_at = NULL WHERE phone IN (?) AND deleted_at IS NOT NULL', [part]);
+    }
+  }
+
+  /** Số hồ sơ đã gộp vào hồ sơ này (hồ sơ giữ lại thì không được xóa). */
+  async countMergedInto(customerId) {
+    const [[{ total }]] = await this.db.query(
+      'SELECT COUNT(*) AS total FROM customer WHERE merged_into_id = ?', [customerId],
+    );
+    return Number(total);
   }
 
   /** Tra nhiều SĐT một lúc. Hồ sơ đã gộp trả về hồ sơ giữ lại (QT-13). Kết quả: Map SĐT -> customer_id. */
@@ -111,6 +140,7 @@ class CustomerRepository {
   /**
    * Hồ sơ khác SĐT nhưng cùng email, hoặc cùng họ tên và ngày sinh với các hồ sơ mới (FR2, BR4).
    * So sánh họ tên dựa vào collation utf8mb4_unicode_ci (không phân biệt hoa/thường và dấu), xem db:setup.
+   * Hồ sơ đã gộp hoặc đã xóa mềm không tham gia.
    */
   async findDuplicateCandidates(customerIds) {
     const found = [];
@@ -124,7 +154,8 @@ class CustomerRepository {
           `SELECT a.customer_id AS a_id, b.customer_id AS b_id, a.full_name AS a_name, b.full_name AS b_name
              FROM customer a JOIN customer b ON ${joinOn} AND b.customer_id <> a.customer_id
             WHERE a.customer_id IN (?) AND ${notNull}
-              AND a.merged_into_id IS NULL AND b.merged_into_id IS NULL`,
+              AND a.merged_into_id IS NULL AND b.merged_into_id IS NULL
+              AND a.deleted_at IS NULL AND b.deleted_at IS NULL`,
           [part],
         );
         rows.forEach((r) => found.push({
@@ -138,7 +169,7 @@ class CustomerRepository {
   /** Đọc và khóa dòng các hồ sơ (theo thứ tự id để hai giao dịch không khóa chéo nhau). */
   async lockByIds(ids) {
     const [rows] = await this.db.query(
-      `SELECT customer_id, customer_code, full_name, phone, email, address, birth_date, merged_into_id
+      `SELECT customer_id, customer_code, full_name, phone, email, address, birth_date, merged_into_id, deleted_at
          FROM customer WHERE customer_id IN (?) ORDER BY customer_id FOR UPDATE`,
       [ids],
     );

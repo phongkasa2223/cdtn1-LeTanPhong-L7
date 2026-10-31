@@ -10,20 +10,24 @@ function parsePositiveInt(value, fallback) {
   return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
-/** Nghiệp vụ khách hàng, không biết HTTP hay SQL. Nhận repository và validator qua constructor. */
+/** Nghiệp vụ khách hàng, không biết HTTP hay SQL. Nhận repository, validator và uow (cho thao tác xóa) qua constructor. */
 class CustomerService {
-  constructor(customers, validator, now = () => new Date()) {
+  constructor(customers, validator, now = () => new Date(), uow = null) {
     this.customers = customers;
     this.validator = validator;
     this.now = now;
+    this.uow = uow;
   }
 
-  /** QT-01: mỗi SĐT chỉ thuộc một hồ sơ. */
+  /** QT-01: mỗi SĐT chỉ thuộc một hồ sơ, kể cả hồ sơ đã xóa mềm (SĐT được giữ cho tới khi nhập file khôi phục). */
   async assertPhoneFree(phone, ownId = null) {
-    const existing = await this.customers.findByPhone(phone);
+    const existing = await this.customers.findByPhone(phone, { includeDeleted: true });
     if (existing && existing.customer_id !== ownId) {
-      throw new AppError('DUPLICATE_PHONE', `Số điện thoại ${phone} đã thuộc hồ sơ ${existing.customer_code}.`,
-        { customerId: existing.customer_code });
+      const deleted = Boolean(existing.deleted_at);
+      const message = deleted
+        ? `Số điện thoại ${phone} thuộc hồ sơ ${existing.customer_code} đã xóa. Nhập file có số này sẽ khôi phục hồ sơ đó.`
+        : `Số điện thoại ${phone} đã thuộc hồ sơ ${existing.customer_code}.`;
+      throw new AppError('DUPLICATE_PHONE', message, { customerId: existing.customer_code, deleted });
     }
   }
 
@@ -79,6 +83,35 @@ class CustomerService {
     await this.assertPhoneFree(data.phone, current.customer_id);
     await this.guard(() => this.customers.update(current.customer_id, data));
     return this.getDto(code, viewer);
+  }
+
+  /**
+   * Xóa MỀM hồ sơ (S1, BR5): chỉ đánh dấu deleted_at, hồ sơ và lịch sử vẫn còn trong bảng.
+   * Chạy trong một giao dịch: khóa dòng trước rồi mới kiểm tra, để không lệch với một lần gộp đang chạy.
+   * Không xóa được hồ sơ đã gộp, hồ sơ là nơi các hồ sơ khác đã gộp vào, hoặc hồ sơ đang trong cặp chờ duyệt.
+   */
+  async remove(code) {
+    const current = await this.get(code); // CUSTOMER_NOT_FOUND nếu không có hoặc đã xóa
+    await this.uow.run(async ({ customers, pairs }) => {
+      const [locked] = await customers.lockByIds([current.customer_id]);
+      if (!locked || locked.deleted_at) {
+        throw new AppError('CUSTOMER_NOT_FOUND', `Không tìm thấy hồ sơ khách hàng ${code}.`);
+      }
+      if (locked.merged_into_id) {
+        throw new AppError('CUSTOMER_MERGED', `Hồ sơ ${code} đã gộp vào hồ sơ khác, không xóa được.`);
+      }
+      const merged = await customers.countMergedInto(locked.customer_id);
+      if (merged > 0) {
+        throw new AppError('CUSTOMER_HAS_MERGED',
+          `Hồ sơ ${code} đang là hồ sơ giữ lại của ${merged} hồ sơ đã gộp, không xóa được.`);
+      }
+      const pending = await pairs.countPendingOf(locked.customer_id);
+      if (pending > 0) {
+        throw new AppError('CUSTOMER_IN_PENDING_PAIR',
+          `Hồ sơ ${code} đang nằm trong ${pending} cặp nghi trùng chờ duyệt. Hãy duyệt cặp trước khi xóa.`);
+      }
+      await customers.softDelete(locked.customer_id);
+    });
   }
 
   /** Đổi lỗi trùng khóa của DB (2 request cùng SĐT cùng lúc) thành DUPLICATE_PHONE. */
