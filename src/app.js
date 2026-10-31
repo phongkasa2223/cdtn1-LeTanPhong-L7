@@ -14,11 +14,13 @@ const { CustomerService } = require('./services/customer.service');
 const { DuplicateService } = require('./services/duplicate.service');
 const { ImportService } = require('./services/import.service');
 const { RecordValidator } = require('./services/record-validator');
+const { UserService } = require('./services/user.service');
 const { authenticate } = require('./middleware/auth');
 const authRoutes = require('./routes/auth.routes');
 const customerRoutes = require('./routes/customer.routes');
 const duplicatePairRoutes = require('./routes/duplicate-pair.routes');
 const importRoutes = require('./routes/import.routes');
+const userRoutes = require('./routes/user.routes');
 
 const FRONTEND_DIST = path.resolve(__dirname, '..', 'frontend', 'dist');
 const SECURITY_HEADERS = {
@@ -87,11 +89,14 @@ function buildApp(pool, {
     read: { pairs: new DuplicatePairRepository(pool) },
   });
 
+  const userService = new UserService(new AppUserRepository(pool));
+
   app.use('/api', authRoutes(authService)); // mở: đăng nhập
   app.use('/api', authenticate(authService)); // từ đây trở xuống bắt buộc đăng nhập (NFR2)
   app.use('/api', customerRoutes(customerService));
   app.use('/api', importRoutes(importService));
   app.use('/api', duplicatePairRoutes(duplicateService));
+  app.use('/api', userRoutes(userService)); // quản lý tài khoản: chỉ Quản lý dữ liệu (route tự kiểm vai trò)
 
   // Chạy thật: Express phục vụ luôn bản build của frontend (một cổng, một lệnh npm start).
   if (fs.existsSync(FRONTEND_DIST)) {
