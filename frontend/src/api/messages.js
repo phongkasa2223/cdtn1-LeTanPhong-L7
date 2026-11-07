@@ -10,6 +10,11 @@ const MESSAGES = {
   ],
   UNAUTHORIZED: ['Phiên đăng nhập đã hết hạn.', 'Phiên làm việc không còn hiệu lực.', 'Đăng nhập lại để tiếp tục.'],
   INVALID_CREDENTIALS: ['Đăng nhập không thành công.', 'Sai tên đăng nhập hoặc mật khẩu.', 'Kiểm tra lại rồi thử lần nữa.'],
+  TOO_MANY_ATTEMPTS: (e) => [
+    'Tạm thời chưa đăng nhập được.',
+    'Đã nhập sai quá nhiều lần liên tiếp nên tài khoản này bị khóa đăng nhập từ máy này.',
+    `Thử lại sau ${Math.ceil((e.details?.retryAfterSeconds || 900) / 60)} phút.`,
+  ],
   VALIDATION_ERROR: ['Thông tin chưa hợp lệ.', 'Tên đăng nhập dài 3–50 ký tự, mật khẩu dài 8–72 ký tự.', 'Sửa lại rồi gửi lần nữa.'],
   FORBIDDEN: [
     'Bạn không có quyền dùng chức năng này.',

@@ -7,7 +7,7 @@ const {
 } = require('node:test');
 const assert = require('node:assert/strict');
 const { openTestDb, resetDb, snapshotCounts } = require('../helpers/db');
-const { startApi, csvForm } = require('../helpers/api');
+const { startApi, csvForm, DEMO_PASSWORD } = require('../helpers/api');
 const { csv } = require('../helpers/csv');
 
 let pool;
@@ -80,4 +80,20 @@ test('TC-API2 A01 kiểm soát truy cập: 401 chưa đăng nhập, 403 sai vai 
   lines.push(`số dòng các bảng trước và sau giống nhau: ${JSON.stringify(countsAfter) === JSON.stringify(countsBefore)}; trạng thái cặp P0001: ${pair.status}`);
   assert.deepEqual(countsAfter, countsBefore);
   assert.equal(pair.status, 'PENDING');
+
+  // A07: đoán mật khẩu. Sai 5 lần liên tiếp thì lần sau bị chặn 429 (kể cả khi nhập đúng); tài khoản khác không bị ảnh hưởng.
+  const guesses = [];
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    const guess = await api.call('POST', '/api/auth/login', { json: { username: 'nv.minh', password: `SaiMatKhau${attempt}` } });
+    guesses.push(guess.status);
+  }
+  const rightAfter = await api.call('POST', '/api/auth/login', { json: { username: 'nv.minh', password: DEMO_PASSWORD } });
+  const otherUser = await api.call('POST', '/api/auth/login', { json: { username: 'nv.lan', password: DEMO_PASSWORD } });
+  lines.push(`6 lần sai mật khẩu nv.minh -> ${guesses.join(', ')}; nhập đúng ngay sau đó -> ${rightAfter.status} ${rightAfter.data?.error?.code ?? ''} `
+    + `(Retry-After: ${rightAfter.headers.get('retry-after')}); nv.lan đăng nhập -> ${otherUser.status}`);
+  assert.deepEqual(guesses, [401, 401, 401, 401, 401, 429]);
+  assert.equal(rightAfter.status, 429);
+  assert.equal(rightAfter.data.error.code, 'TOO_MANY_ATTEMPTS');
+  assert.ok(Number(rightAfter.headers.get('retry-after')) > 0);
+  assert.equal(otherUser.status, 200, 'tài khoản khác không bị ảnh hưởng');
 });

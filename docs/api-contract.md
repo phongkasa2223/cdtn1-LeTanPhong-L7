@@ -45,6 +45,7 @@ API theo kiểu REST, trao đổi dữ liệu JSON (riêng chức năng nhập f
 | 404 Not Found | Không tìm thấy lần nhập, bản ghi hoặc cặp nghi trùng theo mã. |
 | 409 Conflict | Xung đột trạng thái (ví dụ cặp nghi trùng đã được xử lý). |
 | 413 Payload Too Large | Body JSON lớn hơn 256 KB (`PAYLOAD_TOO_LARGE`), kể cả khi chưa đăng nhập. |
+| 429 Too Many Requests | Đăng nhập sai 5 lần liên tiếp (`TOO_MANY_ATTEMPTS`), kèm `Retry-After` (giây). |
 | 500 Internal Server Error | Lỗi phía máy chủ; giao dịch được hủy toàn bộ (NFR3). Kèm `requestId` để tra log. |
 | 503 Service Unavailable | Không kết nối được cơ sở dữ liệu (`SERVICE_UNAVAILABLE`); dữ liệu đã lưu không bị ảnh hưởng, thử lại sau. Kèm `requestId`. |
 
@@ -364,6 +365,7 @@ Xác thực (401/403), QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) �
 ### 3.8. Bổ sung ở Bài tập 3 (xem `docs/bug-log.md`)
 
 - **413 `PAYLOAD_TOO_LARGE`:** body JSON lớn hơn 256 KB bị từ chối bằng `{ "error": { "code": "PAYLOAD_TOO_LARGE", "message": "Nội dung gửi lên lớn hơn 256 KB." } }`, trước cả bước kiểm tra đăng nhập. Trước đó trả 500 `INTERNAL_ERROR` (BUG-008). Tải file CSV (multipart) không chịu giới hạn này mà theo giới hạn 5 MB của E2 (400 `FILE_TOO_LARGE`).
+- **429 `TOO_MANY_ATTEMPTS` (E1):** đăng nhập sai 5 lần liên tiếp với cùng tên đăng nhập từ cùng một địa chỉ thì cặp đó bị khóa 15 phút kể từ lần sai cuối, kể cả khi nhập đúng mật khẩu (BUG-009, OWASP A07). Phản hồi kèm header `Retry-After` và `error.details.retryAfterSeconds`. Đăng nhập đúng xóa bộ đếm; cặp (địa chỉ, tên đăng nhập) khác không bị ảnh hưởng. Bộ đếm nằm trong bộ nhớ của tiến trình: khởi động lại thì xóa, chạy nhiều máy chủ cần kho chung.
 
 ## 4. Quy tắc validation từng trường
 

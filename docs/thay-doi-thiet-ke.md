@@ -213,3 +213,12 @@ chứng của tiêu chí 3 (Nhất quán và Tích luỹ) trong rubric.
   kiểm bằng TC-S7, TC-S11, TC-S12 và một bước của `npm run e2e`.
 - **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml` và `.dockerignore` sẽ được thêm; `README.md`, Test Plan mục 4 và Deployment Guide sẽ ghi cách dựng bằng Docker. Test Plan mục 1 sẽ ghi
   giao diện tra cứu là phần chưa hiện thực nên không kiểm; cột "Test case (BT3)" của FR7 trong `docs/srs.md` mục 6 sẽ trỏ tới các test của API E9.
+
+## 24. Chặn đoán mật khẩu nhiều lần (BUG-009)
+
+- **Thay đổi gì:** `POST /api/auth/login` đếm số lần đăng nhập sai theo cặp (địa chỉ gọi, tên đăng nhập). Sai 5 lần liên tiếp thì cặp đó bị khóa 15 phút kể từ lần sai cuối: trả `429 TOO_MANY_ATTEMPTS`
+  kèm `Retry-After`, kể cả khi nhập đúng mật khẩu. Đăng nhập đúng xóa bộ đếm; cặp khác không bị ảnh hưởng. Đây là hạn chế (4) của mục 22.
+- **Vì sao:** test TC-API2 (bảo mật, OWASP A07) cho thấy sai mật khẩu 6 lần đều chỉ trả 401 và lần nhập đúng ngay sau đó vẫn vào được, tức đoán mật khẩu không giới hạn. Khóa theo cặp (địa chỉ, tên) để
+  người ngoài không khóa được tài khoản của người dùng thật từ máy khác. Bộ đếm nằm trong bộ nhớ một tiến trình (khởi động lại thì xóa, chạy nhiều máy chủ cần kho chung); hệ thống hiện chạy một máy chủ nên đủ dùng.
+- **Ảnh hưởng:** `src/middleware/login-throttle.js` (mới), `src/routes/auth.routes.js`, `src/routes/http-error.js`, `frontend/src/api/messages.js`, `docs/api-contract.md` mục 2 và 3.8,
+  `tests/login-throttle.test.js` (TC-A9 đến TC-A12), `tests/api/security.api.test.js` (TC-API2).
