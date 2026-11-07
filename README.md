@@ -11,10 +11,10 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 **quản lý dữ liệu** xem báo cáo tỷ lệ lỗi theo từng lần nhập để theo dõi chất lượng dữ liệu.
 
 ## 2. Yêu cầu môi trường
-- Node.js 20.6 trở lên (đã thử trên Node 24, xem `.nvmrc`) và npm
+- Node.js 20.12 trở lên (đã thử trên Node 24, xem `.nvmrc`) và npm
 - MySQL 8.0 hoặc MariaDB 10.4 trở lên đang chạy (đang thử trên MariaDB 10.4.32 của XAMPP, xem `docs/thay-doi-thiet-ke.md` mục 4). Cần một tài khoản quản trị để tạo database, mặc định `root` không mật khẩu như XAMPP; đổi bằng `DB_ADMIN_USER` và `DB_ADMIN_PASSWORD` trong `.env`
 - Trình duyệt hiện đại (Chrome, Edge hoặc Firefox)
-- Biến môi trường: xem `.env.example` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_POOL_MAX`, `DB_TZ_OFFSET`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `LOG_LEVEL`; `E2E_BASE_URL` và `E2E_PASSWORD` chỉ dùng cho `npm run e2e`)
+- Biến môi trường: xem `.env.example` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_POOL_MAX`, `DB_TZ_OFFSET`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `LOG_LEVEL`; `E2E_BASE_URL` và `E2E_PASSWORD` chỉ dùng cho `npm run e2e`; `TEST_DB_NAME` tùy chọn, tên CSDL thử của `npm test`)
 
 ## 3. Hướng dẫn chạy
 Mỗi bước một lệnh, chạy trong thư mục gốc của repo:
@@ -23,7 +23,7 @@ Mỗi bước một lệnh, chạy trong thư mục gốc của repo:
 git clone https://github.com/phongkasa2223/cdtn1-LeTanPhong-L7.git   # 0. lấy mã nguồn, rồi: cd cdtn1-LeTanPhong-L7
 npm run env:init     # 1. tạo .env, mật khẩu DB và JWT_SECRET được sinh ngẫu nhiên
 npm install          # 2. cài thư viện backend
-npm run db:setup     # 3. tạo database mekong_dq và tài khoản ứng dụng
+npm run db:setup     # 3. tạo database mekong_dq, database thử mekong_dq_test (cho npm test) và tài khoản ứng dụng
 npm run migrate      # 4. tạo 6 bảng theo DDL (chạy lại được)
 npm run seed         # 5. nạp dữ liệu mẫu: 3 tài khoản, 12 hồ sơ (chạy lại không nhân đôi)
 npm run gen:data     # 6. sinh file data/customers_raw.csv (3.000 dòng giả, có lỗi và trùng lặp)
@@ -82,15 +82,16 @@ Chạy giao diện ở chế độ phát triển (tự nạp lại khi sửa mã
 | `frontend/` | Giao diện React: `src/api/client.js` (nơi duy nhất gọi `fetch`), `src/api/*.api.js`, `src/components/DataState.jsx` (đang tải, rỗng, lỗi), `src/pages/` (đăng nhập và 3 màn hình MH1–MH3) |
 | `config/` | `phone_prefixes.json` – danh mục đầu số di động (NFR5) |
 | `migrations/`, `seeds/`, `scripts/` | DDL chạy lại được, dữ liệu mẫu, script (`db-setup`, `run-sql`, `gen-sample-csv`, `e2e`...) |
-| `tests/` | Kiểm thử tự động (`node --test`), `tests/helpers/` là repository giả |
+| `tests/` | Kiểm thử tự động (`node --test`): test đơn vị ở `tests/`, test tích hợp ở `tests/integration/`, test API ở `tests/api/`; `tests/helpers/` có repository giả (test đơn vị) và hạ tầng CSDL thử (`db.js`, `api.js`, `csv.js`) |
 
 Ánh xạ sơ đồ kiến trúc → thư mục: ImportController → `import.routes.js` (E2, E7, và E3 liệt kê bản ghi lỗi); DuplicatePairController → `duplicate-pair.routes.js`; Customer Controller → `customer.routes.js`; Xác thực → `auth.routes.js` và `middleware/auth.js`; ImportService, DuplicateService, RecordValidator → `src/services/`; ImportBatch, StgCustomer, DqResult, Customer, DuplicatePair, AppUser Repository → `src/repositories/`. Chưa làm: RecordController (sửa bản ghi lỗi, E8), Report Controller và ReportService (báo cáo, E10): `record.routes.js`, `report.routes.js`, `report.service.js` còn là khung rỗng. Bài tập 2 thêm quản lý tài khoản (`user.routes.js`, `user.service.js`), `src/db.js` (bọc pool, lỗi mất kết nối thành 503) và xóa mềm hồ sơ khách hàng; kiến trúc thực tế, ranh giới lớp và các lệnh kiểm nằm ở `docs/architecture-thuc-te.md`.
 
 ## 5. Kiểm thử
 ```bash
-npm test      # node --test, 107 test, không cần CSDL (dùng repository giả)
+npm test      # node --test, 117 test: 109 đơn vị (repository giả), 5 tích hợp và 3 API chạy trên CSDL thử mekong_dq_test
 npm run e2e   # chạy thử luồng chính qua API thật (cần npm start đang chạy)
 ```
+`npm test` cần MariaDB/MySQL đang chạy và đã `npm run db:setup` (không cần `npm start`). Trước MỖI test tích hợp và API, CSDL thử được xóa sạch rồi nạp lại `seeds/001_demo.sql`; hạ tầng từ chối xóa nếu tên CSDL không kết thúc bằng `_test`, nên CSDL chạy thật `mekong_dq` không bị đụng tới. Chạy riêng một test case: `node --test --test-name-pattern="^TC-DB1 " tests/integration/import.db.test.js`.
 Ba loại test (mã `TC-xx` ghi ngay trong tên test):
 - **Luồng đúng:** tạo hồ sơ (TC-S1), nhập file hợp lệ (TC-I1), xóa mềm hồ sơ (TC-S7), tạo tài khoản (TC-U1), đăng nhập (TC-A1).
 - **Giá trị biên:** token còn hạn ở giây 3599 và hết hạn ở giây 3601 (TC-A4); tên đăng nhập 2 và 3 ký tự, mật khẩu 7, 8, 72 và 73 ký tự (TC-U5); che dãy 8 và 9 chữ số trong log (TC-L2).

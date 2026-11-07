@@ -48,16 +48,19 @@ function wrapPool(pool) {
   };
 }
 
-/** Tạo pool kết nối DB từ biến môi trường (.env). */
-function createPool() {
-  const { DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD } = process.env;
-  if (!DB_HOST || !DB_NAME || !DB_USER) {
+/**
+ * Tạo pool kết nối DB từ biến môi trường (.env). `database` cho phép nối sang CSDL khác DB_NAME,
+ * dùng cho CSDL thử của test tích hợp; chạy thật không truyền gì.
+ */
+function createPool({ database = process.env.DB_NAME } = {}) {
+  const { DB_HOST, DB_PORT, DB_USER, DB_PASSWORD } = process.env;
+  if (!DB_HOST || !database || !DB_USER) {
     throw new Error('Thiếu biến môi trường DB_HOST / DB_NAME / DB_USER. Xem .env.example.');
   }
   return wrapPool(mysql.createPool({
     host: DB_HOST,
     port: Number(DB_PORT || 3306),
-    database: DB_NAME,
+    database,
     user: DB_USER,
     password: DB_PASSWORD || '',
     charset: 'utf8mb4',

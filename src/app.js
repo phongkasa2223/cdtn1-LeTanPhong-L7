@@ -30,29 +30,14 @@ const SECURITY_HEADERS = {
   'Content-Security-Policy': "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'",
 };
 
-/** Lắp các lớp lại với nhau. Nhận pool từ ngoài để test không cần DB. */
-function buildApp(pool, {
+/**
+ * Lắp các repository và service lại với nhau. Dùng chung cho ứng dụng thật và test tích hợp,
+ * nên test chạy đúng cách lắp của bản chạy thật. Nhận pool từ ngoài.
+ */
+function buildServices(pool, {
   jwtSecret = process.env.JWT_SECRET,
   jwtExpiresIn = Number(process.env.JWT_EXPIRES_IN) || undefined,
 } = {}) {
-  const app = express();
-  app.disable('x-powered-by');
-  app.use((_req, res, next) => {
-    res.set(SECURITY_HEADERS);
-    next();
-  });
-  app.use(express.json({ limit: '256kb' }));
-  app.use(attachRequestId);
-
-  app.get('/health', async (_req, res) => {
-    try {
-      await pool.query('SELECT 1');
-      res.json({ status: 'ok', db: 'ok' });
-    } catch {
-      res.status(503).json({ status: 'degraded', db: 'unreachable' });
-    }
-  });
-
   const authService = new AuthService(new AppUserRepository(pool), { secret: jwtSecret, expiresIn: jwtExpiresIn });
   const validator = RecordValidator.fromConfig();
   // Xóa mềm hồ sơ chạy trong một giao dịch: khóa dòng rồi mới kiểm tra các điều kiện chặn xóa.
@@ -91,6 +76,35 @@ function buildApp(pool, {
 
   const userService = new UserService(new AppUserRepository(pool));
 
+  return {
+    authService, customerService, importService, duplicateService, userService,
+  };
+}
+
+/** Lắp các lớp lại với nhau. Nhận pool từ ngoài để test không cần DB. */
+function buildApp(pool, options) {
+  const {
+    authService, customerService, importService, duplicateService, userService,
+  } = buildServices(pool, options);
+
+  const app = express();
+  app.disable('x-powered-by');
+  app.use((_req, res, next) => {
+    res.set(SECURITY_HEADERS);
+    next();
+  });
+  app.use(express.json({ limit: '256kb' }));
+  app.use(attachRequestId);
+
+  app.get('/health', async (_req, res) => {
+    try {
+      await pool.query('SELECT 1');
+      res.json({ status: 'ok', db: 'ok' });
+    } catch {
+      res.status(503).json({ status: 'degraded', db: 'unreachable' });
+    }
+  });
+
   app.use('/api', authRoutes(authService)); // mở: đăng nhập
   app.use('/api', authenticate(authService)); // từ đây trở xuống bắt buộc đăng nhập (NFR2)
   app.use('/api', customerRoutes(customerService));
@@ -126,4 +140,4 @@ function buildApp(pool, {
   return app;
 }
 
-module.exports = { buildApp };
+module.exports = { buildApp, buildServices };

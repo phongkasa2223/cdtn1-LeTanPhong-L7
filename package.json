@@ -14,10 +14,10 @@
     "migrate": "node --env-file=.env scripts/run-sql.js migrations",
     "seed": "node --env-file=.env scripts/run-sql.js seeds",
     "db:count": "node --env-file=.env scripts/count-rows.js",
-    "test": "node --test"
+    "test": "node --test --test-concurrency=1"
   },
   "engines": {
-    "node": ">=20.6"
+    "node": ">=20.12"
   },
   "dependencies": {
     "csv-parse": "7.0.3",

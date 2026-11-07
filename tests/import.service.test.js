@@ -110,6 +110,39 @@ test('TC-I13 BR8: file CSV không phải UTF-8 (lưu ANSI từ Excel cũ) bị t
   assert.equal(store.customers.length, 0);
 });
 
+// --- BR8: ranh giới 5 MB, hai phía của cùng một ranh giới ---
+
+/** File CSV hợp lệ dài đúng `bytes` byte: một dòng dữ liệu, phần đệm là khoảng trắng trong ô địa chỉ (đọc ra rỗng). */
+function csvOfSize(bytes) {
+  const head = Buffer.from(`${HEADER}\r\nNguyễn Văn Biên,0903555777,,"`, 'utf8');
+  const tail = Buffer.from('",,2025-01-05', 'utf8');
+  return Buffer.concat([head, Buffer.alloc(bytes - head.length - tail.length, ' '), tail]);
+}
+
+test('TC-I14 BR8 biên dưới: file dài đúng 5 MB (5.242.880 byte) vẫn được nhận', async (t) => {
+  const { store, importFile } = setup();
+  const buffer = csvOfSize(MAX_FILE_BYTES);
+  const summary = await importFile(buffer);
+  t.diagnostic(`file ${buffer.length} byte -> ${summary.importId}, hợp lệ ${summary.validRecords}/${summary.totalRecords}; số lần nhập đã lưu: ${store.batches.length}`);
+  assert.equal(buffer.length, 5 * 1024 * 1024);
+  assert.equal(summary.validRecords, 1);
+  assert.equal(store.batches.length, 1);
+});
+
+test('TC-I15 BR8 biên trên: file dài 5 MB + 1 byte bị từ chối FILE_TOO_LARGE, không lưu gì', async (t) => {
+  const { store, importFile } = setup();
+  const buffer = csvOfSize(MAX_FILE_BYTES + 1);
+  let failure;
+  await assert.rejects(() => importFile(buffer), (err) => {
+    failure = err;
+    return err.code === 'FILE_TOO_LARGE';
+  });
+  t.diagnostic(`file ${buffer.length} byte -> ${failure.code}: ${failure.message}; số lần nhập đã lưu: ${store.batches.length}`);
+  assert.match(failure.message, /5 MB/);
+  assert.equal(store.batches.length, 0);
+  assert.equal(store.customers.length, 0);
+});
+
 test('TC-I4 QT-01 + QT-13: SĐT của hồ sơ đã gộp thì gắn vào hồ sơ giữ lại', async () => {
   const { store, importFile } = setup();
   const keeper = addCustomer(store, { fullName: 'Lê Hoàng Nam', phone: '0932111222' });
