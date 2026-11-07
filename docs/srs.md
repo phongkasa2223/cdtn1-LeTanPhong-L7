@@ -121,16 +121,16 @@ Các quy tắc QT lấy từ Bảng 9.1 của case study (QT-01, QT-02 của lu�
 ## 6. Bảng truy vết yêu cầu
 | Mã FR | Yêu cầu chức năng | User Story | Use Case | MoSCoW | Test case (BT3) |
 | :---: | :--- | :---: | :---: | :---: | :--- |
-| FR1 | Nhập file CSV khách hàng | US1 | UC1 | MUST | Bổ sung ở BT3 |
-| FR2 | Kiểm tra và chuẩn hóa bản ghi, tạo cặp nghi trùng | US1, US4 | UC1, UC4 | MUST | Bổ sung ở BT3 |
-| FR3 | Danh sách các lần nhập | US2 | UC2 | SHOULD | Bổ sung ở BT3 |
-| FR4 | Danh sách bản ghi lỗi có lọc theo mã quy tắc | US3 | UC3 | MUST | Bổ sung ở BT3 |
-| FR5 | Sửa bản ghi lỗi | US4 | UC4 | SHOULD | Bổ sung ở BT3 |
-| FR6 | Duyệt cặp hồ sơ nghi trùng | US5 | UC5 | MUST | Bổ sung ở BT3 |
-| FR7 | Tra cứu khách hàng theo SĐT | US6 | UC6 | SHOULD | Bổ sung ở BT3 |
-| FR8 | Báo cáo chất lượng theo lần nhập | US7 | UC7 | SHOULD | Bổ sung ở BT3 |
+| FR1 | Nhập file CSV khách hàng | US1 | UC1 | MUST | TC-I1, TC-I3, TC-I8, TC-I13, TC-I14, TC-I15, TC-DB1, TC-API1 (ca TC-03, TC-04, TC-05, TC-07, TC-10) |
+| FR2 | Kiểm tra và chuẩn hóa bản ghi, tạo cặp nghi trùng | US1, US4 | UC1, UC4 | MUST | TC-V1 đến TC-V11, TC-I2, TC-I6, TC-DB1 (ca TC-01, TC-07) |
+| FR3 | Danh sách các lần nhập | US2 | UC2 | SHOULD | TC-API4, TC-API2 |
+| FR4 | Danh sách bản ghi lỗi có lọc theo mã quy tắc | US3 | UC3 | MUST | TC-E1 đến TC-E4, TC-API1 (ca TC-10) |
+| FR5 | Sửa bản ghi lỗi | US4 | UC4 | SHOULD | Chưa có: chưa hiện thực (`docs/thay-doi-thiet-ke.md` mục 9) |
+| FR6 | Duyệt cặp hồ sơ nghi trùng | US5 | UC5 | MUST | TC-P1 đến TC-P11, TC-API1 (ca TC-10) |
+| FR7 | Tra cứu khách hàng theo SĐT | US6 | UC6 | SHOULD | TC-S11, TC-S12, TC-API1 bước 6 (ca TC-06, TC-10); chỉ kiểm API (E9), màn hình tra cứu chưa làm (mục 23) |
+| FR8 | Báo cáo chất lượng theo lần nhập | US7 | UC7 | SHOULD | Chưa có: chưa hiện thực (`docs/thay-doi-thiet-ke.md` mục 9) |
 
-*Bảng không có ô trống. Mã test case cụ thể (TC01, TC02…) được bổ sung vào cột “Test case” khi làm BT3.*
+*Bảng không có ô trống. Cột “Test case (BT3)” ghi mã test trong `npm test` (mã `TC-xx` nằm ngay trong tên test) và ca tương ứng ở `docs/test-report.md`; FR5 và FR8 chưa hiện thực nên chưa có test.*
 
 ---
 
