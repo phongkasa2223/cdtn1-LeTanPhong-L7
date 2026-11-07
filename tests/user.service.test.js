@@ -202,3 +202,37 @@ test('TC-U14 tài khoản đã có lịch sử (lần nhập, quyết định du
   await assert.rejects(() => service(repo).remove('1', ADMIN), (err) => err.code === 'USER_HAS_HISTORY');
   assert.equal(repo.table.length, 2);
 });
+
+// --- BUG-010: hai Quản lý xóa nhau cùng lúc ---
+
+test('TC-U15 xóa Quản lý chạy trong giao dịch và khóa các dòng Quản lý trước khi đếm, nên hai người xóa nhau cùng lúc không cùng qua', async (t) => {
+  const calls = [];
+  const base = fakeUsers([lan, hung, { ...hung, user_id: 4, username: 'ql.hoa' }]);
+  const repo = {
+    ...base,
+    lockManagers: async () => { calls.push('lockManagers'); },
+    countByRole: async (role) => { calls.push('countByRole'); return base.countByRole(role); },
+    remove: async (id) => { calls.push(`remove ${id}`); return base.remove(id); },
+  };
+  const uow = {
+    run: async (work) => {
+      calls.push('begin');
+      const result = await work({ users: repo });
+      calls.push('commit');
+      return result;
+    },
+  };
+  await new UserService(repo, uow).remove('4', ADMIN);
+  t.diagnostic(`thứ tự thao tác: ${calls.join(' -> ')}`);
+  assert.deepEqual(calls, ['begin', 'lockManagers', 'countByRole', 'remove 4', 'commit']);
+});
+
+test('TC-U16 xóa nhân viên không cần khóa các dòng Quản lý và không mở giao dịch, để không làm chậm thao tác thường', async () => {
+  const calls = [];
+  const base = fakeUsers();
+  const repo = { ...base, lockManagers: async () => { calls.push('lockManagers'); } };
+  const uow = { run: async () => { calls.push('begin'); } };
+  await new UserService(repo, uow).remove('1', ADMIN);
+  assert.deepEqual(calls, []);
+  assert.equal(base.table.length, 1);
+});

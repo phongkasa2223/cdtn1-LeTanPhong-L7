@@ -40,6 +40,14 @@ class AppUserRepository {
     return Number(total);
   }
 
+  /**
+   * Khóa các dòng Quản lý dữ liệu (theo thứ tự id, để hai giao dịch không khóa chéo nhau) tới khi giao dịch kết thúc.
+   * Nhờ đó các thao tác đổi số Quản lý chạy lần lượt: người sau đếm trên số liệu người trước đã ghi.
+   */
+  async lockManagers() {
+    await this.db.query("SELECT user_id FROM app_user WHERE role = 'DATA_MANAGER' ORDER BY user_id FOR UPDATE");
+  }
+
   /** Trả về user_id mới. Tên đăng nhập trùng thì ném ConstraintError('DUPLICATE'). */
   async insert({
     username, passwordHash, fullName, role, storeCode,

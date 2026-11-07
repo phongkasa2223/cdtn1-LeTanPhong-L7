@@ -222,3 +222,13 @@ chứng của tiêu chí 3 (Nhất quán và Tích luỹ) trong rubric.
   người ngoài không khóa được tài khoản của người dùng thật từ máy khác. Bộ đếm nằm trong bộ nhớ một tiến trình (khởi động lại thì xóa, chạy nhiều máy chủ cần kho chung); hệ thống hiện chạy một máy chủ nên đủ dùng.
 - **Ảnh hưởng:** `src/middleware/login-throttle.js` (mới), `src/routes/auth.routes.js`, `src/routes/http-error.js`, `frontend/src/api/messages.js`, `docs/api-contract.md` mục 2 và 3.8,
   `tests/login-throttle.test.js` (TC-A9 đến TC-A12), `tests/api/security.api.test.js` (TC-API2).
+
+## 25. Đổi số Quản lý dữ liệu chạy trong giao dịch có khóa (BUG-010)
+
+- **Thay đổi gì:** xóa Quản lý dữ liệu và hạ vai trò Quản lý chạy trong một giao dịch: khóa các dòng Quản lý (`SELECT ... FOR UPDATE`) rồi mới đếm "còn mấy Quản lý" và ghi. Hai yêu cầu chồng nhau thì
+  yêu cầu sau chờ, thấy chỉ còn một Quản lý và bị từ chối `LAST_MANAGER`. Xóa nhân viên không bị khóa. Đây là nửa sau của hạn chế (3) ở mục 22.
+- **Vì sao:** test TC-DB6 trên CSDL thật cho thấy hai Quản lý xóa nhau cùng lúc thì cả hai cùng thấy "còn hai Quản lý" và cùng được xóa, để lại 0 Quản lý (vòng 2 của lần chạy đầu); test đơn vị với repository
+  giả không thấy được lỗi này. Nửa đầu của hạn chế (3), gộp cặp chưa kiểm lại `deleted_at`, không xảy ra qua API: xóa mềm hồ sơ bị chặn khi hồ sơ đang nằm trong cặp chờ duyệt và kiểm tra đó chạy sau khi
+  khóa dòng (TC-DB5), nên em chưa sửa phần này.
+- **Ảnh hưởng:** `src/services/user.service.js`, `src/repositories/app-user.repository.js` (`lockManagers`), `src/app.js` (thêm `userUow`), `tests/integration/user.db.test.js` (TC-DB6),
+  `tests/user.service.test.js` (TC-U15, TC-U16).

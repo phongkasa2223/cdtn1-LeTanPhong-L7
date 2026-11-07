@@ -68,8 +68,10 @@ function validateUserInput(input, { creating }) {
 
 /** Quản lý tài khoản (E12–E16), chỉ Quản lý dữ liệu được gọi. Không biết HTTP hay SQL. */
 class UserService {
-  constructor(users) {
+  /** `uow` (tùy chọn) chạy việc đổi số Quản lý trong một giao dịch có khóa; không truyền thì chạy thẳng trên `users` (test đơn vị). */
+  constructor(users, uow = null) {
     this.users = users;
+    this.uow = uow;
   }
 
   async create(input) {
@@ -99,13 +101,16 @@ class UserService {
       throw new ValidationError('Không đổi được tên đăng nhập.',
         [{ field: 'username', code: 'IMMUTABLE', message: 'Tên đăng nhập không đổi sau khi tạo.' }]);
     }
-    if (current.role === 'DATA_MANAGER' && data.role !== 'DATA_MANAGER') {
-      await this.assertNotLastManager('đổi vai trò');
-    }
     const passwordHash = data.password === undefined ? null : await hashPassword(data.password);
-    await this.users.update(current.user_id, {
-      fullName: data.fullName, role: data.role, storeCode: data.storeCode, passwordHash,
-    });
+    const demoting = current.role === 'DATA_MANAGER' && data.role !== 'DATA_MANAGER';
+    const write = async (users) => {
+      if (demoting) await this.assertNotLastManager('đổi vai trò', users);
+      await users.update(current.user_id, {
+        fullName: data.fullName, role: data.role, storeCode: data.storeCode, passwordHash,
+      });
+    };
+    if (demoting) await this.changingManagers(write);
+    else await write(this.users);
     return toUserView(await this.users.findById(current.user_id));
   }
 
@@ -118,16 +123,20 @@ class UserService {
     if (current.user_id === actor?.userId) {
       throw new AppError('CANNOT_DELETE_SELF', 'Không thể xóa tài khoản đang đăng nhập.');
     }
-    if (current.role === 'DATA_MANAGER') await this.assertNotLastManager('xóa');
-    try {
-      await this.users.remove(current.user_id);
-    } catch (err) {
-      if (err instanceof ConstraintError && err.kind === 'REFERENCED') {
-        throw new AppError('USER_HAS_HISTORY',
-          `Tài khoản ${current.username} đã có lịch sử thao tác (lần nhập hoặc quyết định duyệt cặp) nên không xóa được.`);
+    const write = async (users) => {
+      if (current.role === 'DATA_MANAGER') await this.assertNotLastManager('xóa', users);
+      try {
+        await users.remove(current.user_id);
+      } catch (err) {
+        if (err instanceof ConstraintError && err.kind === 'REFERENCED') {
+          throw new AppError('USER_HAS_HISTORY',
+            `Tài khoản ${current.username} đã có lịch sử thao tác (lần nhập hoặc quyết định duyệt cặp) nên không xóa được.`);
+        }
+        throw err;
       }
-      throw err;
-    }
+    };
+    if (current.role === 'DATA_MANAGER') await this.changingManagers(write);
+    else await write(this.users);
   }
 
   async find(userId) {
@@ -136,8 +145,20 @@ class UserService {
     return row;
   }
 
-  async assertNotLastManager(action) {
-    if (await this.users.countByRole('DATA_MANAGER') <= 1) {
+  /**
+   * Đổi số Quản lý (xóa, hạ vai trò) phải kiểm "còn mấy Quản lý" và ghi trên cùng một số liệu: chạy trong giao dịch,
+   * khóa các dòng Quản lý trước khi đếm, nên hai yêu cầu chồng nhau thì yêu cầu sau chờ rồi thấy số đã đổi (BUG-010).
+   */
+  async changingManagers(work) {
+    if (!this.uow) return work(this.users);
+    return this.uow.run(async ({ users }) => {
+      await users.lockManagers();
+      return work(users);
+    });
+  }
+
+  async assertNotLastManager(action, users = this.users) {
+    if (await users.countByRole('DATA_MANAGER') <= 1) {
       throw new AppError('LAST_MANAGER', `Đây là Quản lý dữ liệu cuối cùng, không thể ${action}.`);
     }
   }

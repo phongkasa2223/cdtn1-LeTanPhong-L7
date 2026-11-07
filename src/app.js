@@ -75,7 +75,9 @@ function buildServices(pool, {
     read: { pairs: new DuplicatePairRepository(pool) },
   });
 
-  const userService = new UserService(new AppUserRepository(pool));
+  // Xóa hoặc hạ vai trò Quản lý dữ liệu chạy trong một giao dịch có khóa các dòng Quản lý: luôn còn ít nhất một Quản lý.
+  const userUow = new UnitOfWork(pool, (conn) => ({ users: new AppUserRepository(conn) }));
+  const userService = new UserService(new AppUserRepository(pool), userUow);
 
   return {
     authService, customerService, importService, duplicateService, userService,
