@@ -69,6 +69,12 @@ test('TC-API3 dữ liệu sai: trả đúng 400, 404, 409 kèm mã và thông b�
     400,
     'INVALID_JSON',
   );
+  expectError(
+    'body JSON quá lớn (300 KB, giới hạn 256 KB)',
+    await postCustomer({ fullName: 'A'.repeat(300 * 1024), phone: '0904111222' }),
+    413,
+    'PAYLOAD_TOO_LARGE',
+  );
 
   const countsAfter = await snapshotCounts(pool);
   lines.push(`mã trạng thái đã gặp: ${[...new Set(statuses)].join(', ')}; số dòng các bảng trước và sau giống nhau: ${JSON.stringify(countsAfter) === JSON.stringify(countsBefore)}`);

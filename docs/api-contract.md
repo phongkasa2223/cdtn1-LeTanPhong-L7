@@ -44,6 +44,7 @@ API theo kiểu REST, trao đổi dữ liệu JSON (riêng chức năng nhập f
 | 403 Forbidden | Đã đăng nhập nhưng vai trò không được phép (ví dụ Nhân viên dữ liệu gọi báo cáo). |
 | 404 Not Found | Không tìm thấy lần nhập, bản ghi hoặc cặp nghi trùng theo mã. |
 | 409 Conflict | Xung đột trạng thái (ví dụ cặp nghi trùng đã được xử lý). |
+| 413 Payload Too Large | Body JSON lớn hơn 256 KB (`PAYLOAD_TOO_LARGE`), kể cả khi chưa đăng nhập. |
 | 500 Internal Server Error | Lỗi phía máy chủ; giao dịch được hủy toàn bộ (NFR3). Kèm `requestId` để tra log. |
 | 503 Service Unavailable | Không kết nối được cơ sở dữ liệu (`SERVICE_UNAVAILABLE`); dữ liệu đã lưu không bị ảnh hưởng, thử lại sau. Kèm `requestId`. |
 
@@ -359,6 +360,10 @@ Xác thực (401/403), QT-14 (phạm vi theo cửa hàng) và QT-15 (che SĐT) �
 - **Xác thực:** token chỉ có giá trị khi tài khoản còn tồn tại; vai trò và đơn vị lấy từ CSDL ở mỗi request. Tài khoản đã bị xóa thì mọi route trả 401 `UNAUTHORIZED`.
 - **503 `SERVICE_UNAVAILABLE`:** mọi route trả 503 kèm `requestId` khi không kết nối được CSDL; `/health` trả `{ "status": "degraded", "db": "unreachable" }`.
 - **E2:** thêm lỗi 400 `INVALID_ENCODING` khi file không phải văn bản UTF-8 (ví dụ CSV lưu ANSI từ Excel cũ).
+
+### 3.8. Bổ sung ở Bài tập 3 (xem `docs/bug-log.md`)
+
+- **413 `PAYLOAD_TOO_LARGE`:** body JSON lớn hơn 256 KB bị từ chối bằng `{ "error": { "code": "PAYLOAD_TOO_LARGE", "message": "Nội dung gửi lên lớn hơn 256 KB." } }`, trước cả bước kiểm tra đăng nhập. Trước đó trả 500 `INTERNAL_ERROR` (BUG-008). Tải file CSV (multipart) không chịu giới hạn này mà theo giới hạn 5 MB của E2 (400 `FILE_TOO_LARGE`).
 
 ## 4. Quy tắc validation từng trường
 

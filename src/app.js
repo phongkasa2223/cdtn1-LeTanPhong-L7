@@ -23,6 +23,7 @@ const importRoutes = require('./routes/import.routes');
 const userRoutes = require('./routes/user.routes');
 
 const FRONTEND_DIST = path.resolve(__dirname, '..', 'frontend', 'dist');
+const JSON_LIMIT_KB = 256; // body JSON lớn hơn thì trả 413 PAYLOAD_TOO_LARGE
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
@@ -93,7 +94,7 @@ function buildApp(pool, options) {
     res.set(SECURITY_HEADERS);
     next();
   });
-  app.use(express.json({ limit: '256kb' }));
+  app.use(express.json({ limit: `${JSON_LIMIT_KB}kb` }));
   app.use(attachRequestId);
 
   app.get('/health', async (_req, res) => {
@@ -122,10 +123,16 @@ function buildApp(pool, options) {
     res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Đường dẫn không tồn tại.' } });
   });
 
-  // Bắt lỗi cuối: không trả stack trace ra ngoài.
+  // Bắt lỗi cuối: không trả stack trace ra ngoài. Lỗi của người gọi do bộ đọc JSON phát hiện là 4xx, không phải 500.
   app.use((err, req, res, _next) => {
     if (err.type === 'entity.parse.failed') {
       res.status(400).json({ error: { code: 'INVALID_JSON', message: 'Nội dung gửi lên không phải JSON hợp lệ.' } });
+      return;
+    }
+    if (err.type === 'entity.too.large') {
+      res.status(413).json({
+        error: { code: 'PAYLOAD_TOO_LARGE', message: `Nội dung gửi lên lớn hơn ${JSON_LIMIT_KB} KB.` },
+      });
       return;
     }
     // Dùng khóa `reason`, không dùng `message`: khóa này sẽ đè nhãn "unhandled error" của dòng log.
