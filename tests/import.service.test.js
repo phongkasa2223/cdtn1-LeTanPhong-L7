@@ -99,13 +99,19 @@ test('TC-I12 hồ sơ đã xóa mềm không bị đưa vào cặp nghi trùng',
   assert.equal(summary.newDuplicatePairs, 0);
 });
 
-test('TC-I13 BR8: file CSV không phải UTF-8 (lưu ANSI từ Excel cũ) bị từ chối INVALID_ENCODING, không lưu gì', async () => {
+test('TC-I13 BR8: file CSV không phải UTF-8 (lưu ANSI từ Excel cũ) bị từ chối INVALID_ENCODING, không lưu gì', async (t) => {
   const { store, importFile } = setup();
   const ansi = Buffer.concat([
     Buffer.from(`${HEADER}\r\nNguy`, 'latin1'), Buffer.from([0xea]), Buffer.from('n V', 'latin1'), Buffer.from([0xe3]),
     Buffer.from('n An,0903111222,,,,2024-03-10', 'latin1'),
   ]);
-  await assert.rejects(() => importFile(ansi), (err) => err.code === 'INVALID_ENCODING');
+  let failure;
+  await assert.rejects(() => importFile(ansi), (err) => {
+    failure = err;
+    return err.code === 'INVALID_ENCODING';
+  });
+  t.diagnostic(`file ANSI (${ansi.length} byte, có byte 0xEA và 0xE3) -> ${failure.code}: ${failure.message}; `
+    + `số lần nhập đã lưu ${store.batches.length}, số hồ sơ ${store.customers.length}`);
   assert.equal(store.batches.length, 0);
   assert.equal(store.customers.length, 0);
 });

@@ -8,9 +8,13 @@ const baseInput = { fullName: 'Nguyễn Văn An', phone: '0901234567' };
 
 // --- QT-02: chuẩn hóa SĐT ---
 
-test('TC-V1 các dạng viết khác nhau của cùng một SĐT đều về 0901234567', () => {
+test('TC-V1 các dạng viết khác nhau của cùng một SĐT đều về 0901234567', (t) => {
+  const seen = [];
+  t.after(() => t.diagnostic(seen.join('; '))); // in cả khi test hỏng, để thấy giá trị thực tế
   for (const raw of ['0901234567', '0901 234 567', '84901234567', '+84 901.234.567', '(090) 123-4567']) {
-    assert.equal(validator.normalizePhone(raw).phone, '0901234567', raw);
+    const { phone } = validator.normalizePhone(raw);
+    seen.push(`"${raw}" -> ${phone}`);
+    assert.equal(phone, '0901234567', raw);
   }
 });
 

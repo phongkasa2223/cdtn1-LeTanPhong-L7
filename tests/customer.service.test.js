@@ -106,10 +106,12 @@ test('TC-S6 QT-13: hồ sơ đã gộp không sửa được', async () => {
 
 // --- BR5: xóa MỀM (S1) ---
 
-test('TC-S7 BR5: xóa là xóa mềm, hồ sơ vẫn nằm trong kho với deleted_at nhưng tra cứu và liệt kê không còn thấy', async () => {
+test('TC-S7 BR5: xóa là xóa mềm, hồ sơ vẫn nằm trong kho với deleted_at nhưng tra cứu và liệt kê không còn thấy', async (t) => {
   const repo = fakeRepo([existing]);
   const svc = service(repo);
   await svc.remove('C000001');
+  t.diagnostic(`sau khi xóa C000001: số dòng trong kho ${repo.table.length}, deleted_at = ${repo.table[0].deleted_at}, `
+    + `số hồ sơ còn hiện trong danh sách ${(await svc.list({}, STAFF)).total}`);
   assert.equal(repo.table.length, 1); // không xóa vật lý
   assert.ok(repo.table[0].deleted_at); // chỉ đánh dấu
   await assert.rejects(() => svc.getDto('C000001'), (err) => err.code === 'CUSTOMER_NOT_FOUND');
@@ -188,10 +190,13 @@ test('TC-S10 size vượt 100 bị từ chối, mặc định 50 dòng mỗi tra
 
 // --- QT-15: che SĐT theo vai trò ---
 
-test('TC-S11 QT-15: tra cứu theo SĐT, nhân viên nhận SĐT đã che còn quản lý nhận đầy đủ', async () => {
+test('TC-S11 QT-15: tra cứu theo SĐT, nhân viên nhận SĐT đã che còn quản lý nhận đầy đủ', async (t) => {
   const svc = service(fakeRepo([existing]));
-  assert.equal((await svc.findByPhone('+84 901 234 567', STAFF)).phone, '090****567');
-  assert.equal((await svc.findByPhone('0901234567', MANAGER)).phone, '0901234567');
+  const asStaff = (await svc.findByPhone('+84 901 234 567', STAFF)).phone;
+  const asManager = (await svc.findByPhone('0901234567', MANAGER)).phone;
+  t.diagnostic(`tra bằng "+84 901 234 567": nhân viên thấy ${asStaff}; tra bằng "0901234567": quản lý thấy ${asManager}`);
+  assert.equal(asStaff, '090****567');
+  assert.equal(asManager, '0901234567');
 });
 
 test('TC-S12 US6-AC2: tra bằng SĐT của hồ sơ đã gộp thì ra hồ sơ giữ lại', async () => {
