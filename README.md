@@ -74,7 +74,7 @@ Chạy giao diện ở chế độ phát triển (tự nạp lại khi sửa mã
 ## 4. Cấu trúc thư mục
 | Thư mục | Nội dung |
 | :--- | :--- |
-| `docs/` | Tài liệu BT1: `srs.md`, `usecase.drawio`, `architecture.drawio`, `erd.drawio`, `schema.sql`, `wireframe.drawio`, `wireframe.png`, `api-contract.md`; nhật ký `thay-doi-thiet-ke.md`; BT2: `bug-log.md`, `architecture-thuc-te.md`, `ai-disclosure.md`; ảnh kết quả chạy |
+| `docs/` | Tài liệu BT1: `srs.md`, `usecase.drawio`, `architecture.drawio`, `erd.drawio`, `schema.sql`, `wireframe.drawio`, `wireframe.png`, `api-contract.md`; nhật ký `thay-doi-thiet-ke.md`; BT2: `bug-log.md`, `architecture-thuc-te.md`, `ai-disclosure.md`; ảnh kết quả chạy; BT3: `test-plan.md`, `test-report.md` (12 test case), `screenshots/` (ảnh chụp từng test case và từng lần sửa bug) |
 | `src/routes/` | Lớp API (Express Controller trong sơ đồ kiến trúc): chỉ nhận HTTP và đổi mã nghiệp vụ sang mã HTTP |
 | `src/services/` | Lớp nghiệp vụ: Service, `RecordValidator`, các file `*.contract.js` (hợp đồng dữ liệu trả ra); toàn bộ quy tắc BR/QT, không biết HTTP hay SQL |
 | `src/repositories/` | Lớp truy cập dữ liệu: mỗi bảng một Repository, `unit-of-work.js` gom các thao tác ghi vào một giao dịch (NFR3) |
@@ -88,7 +88,7 @@ Chạy giao diện ở chế độ phát triển (tự nạp lại khi sửa mã
 
 ## 5. Kiểm thử
 ```bash
-npm test      # node --test, 117 test: 109 đơn vị (repository giả), 5 tích hợp và 3 API chạy trên CSDL thử mekong_dq_test
+npm test      # node --test, 125 test: 115 đơn vị (repository giả), 6 tích hợp và 4 API chạy trên CSDL thử mekong_dq_test
 npm run e2e   # chạy thử luồng chính qua API thật (cần npm start đang chạy)
 ```
 `npm test` cần MariaDB/MySQL đang chạy và đã `npm run db:setup` (không cần `npm start`). Trước MỖI test tích hợp và API, CSDL thử được xóa sạch rồi nạp lại `seeds/001_demo.sql`; hạ tầng từ chối xóa nếu tên CSDL không kết thúc bằng `_test`, nên CSDL chạy thật `mekong_dq` không bị đụng tới. Chạy riêng một test case: `node --test --test-name-pattern="^TC-DB1 " tests/integration/import.db.test.js`.
@@ -107,6 +107,8 @@ Các test chính: lỗi giữa chừng khi nhập file thì 0 bản ghi được
 - [x] Sprint 2, frontend: đăng nhập, MH1 nhập file, MH2 bản ghi lỗi, MH3 duyệt cặp; mọi màn hình bọc bằng `DataState`; nhận 401 thì xóa phiên và về trang đăng nhập
 - [x] Luồng chính chạy end-to-end (`npm run e2e`): nhập 3.000 dòng trong khoảng 0,2–0,3 giây (NFR1 yêu cầu dưới 30 giây); 107 test PASS
 - [x] Bài tập 2 (buổi 11–12): hồ sơ khách hàng và tài khoản đều đủ tạo – xem – sửa – xóa (hồ sơ xóa mềm, BR5); mất kết nối CSDL trả `503` với thông báo rõ; log không ghi SĐT; từ chối file không phải UTF-8; `docs/bug-log.md` (7 lỗi, kèm link commit), `docs/architecture-thuc-te.md`, `docs/ai-disclosure.md`; tag `v0.2`
+- [x] Bài tập 3, phần kiểm thử (buổi 13–14): `docs/test-plan.md`, `docs/test-report.md` (12 test case đủ năm loại, ảnh trong `docs/screenshots/`), 3 bug mới tìm và sửa bằng 3 commit riêng (BUG-008 đến BUG-010 trong `docs/bug-log.md`); `npm test` chạy 125 test
+- [ ] Bài tập 3, còn lại: Docker (`Dockerfile`, `docker-compose.yml`), Deployment Guide và tài liệu API tiếng Anh, checklist bảo mật, tag `v1.0`
 - [ ] Sửa bản ghi lỗi (UC4, E8), tra cứu khách hàng trên giao diện (UC6; API E9 đã có), báo cáo chất lượng (UC7, E10): cắt khỏi Sprint 2, ghi ở `docs/thay-doi-thiet-ke.md`
 - [ ] Dữ liệu chạy thử là dữ liệu giả sinh bằng `npm run gen:data` (thầy cho phép), chưa có `customers_raw.csv` thật của Mekong Mobile
 - [ ] Hạn chế đã biết (chi tiết ở `docs/thay-doi-thiet-ke.md` mục 22): đổi đơn vị của nhân viên đã có lần nhập sẽ chuyển luôn các lần nhập cũ sang đơn vị mới; hồ sơ khách hàng chưa gắn với đơn vị; token lưu trong `sessionStorage`, giao diện chưa có test tự động, chưa kiểm trên MySQL 8.0 thật (đang dùng MariaDB 10.4)
