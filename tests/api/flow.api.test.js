@@ -95,3 +95,24 @@ test('TC-API1 luồng chính qua HTTP thật: đăng nhập, nhập file, xem l�
   assert.equal(lookup.data.data.customerId, keep);
   assert.equal(Number(stored.merged), 1);
 });
+
+test('TC-API4 danh sách lần nhập (FR3, QT-14): nhân viên chỉ thấy lần nhập của đơn vị mình, quản lý thấy cả hai, mới nhất trước (luồng đúng)', async (t) => {
+  const lan = await api.login('nv.lan'); // CH01, lần nhập I001
+  const minh = await api.login('nv.minh'); // CH02, lần nhập I002
+  const manager = await api.login('ql.hung');
+  const asLan = await api.call('GET', '/api/imports', { token: lan });
+  const asMinh = await api.call('GET', '/api/imports', { token: minh });
+  const asManager = await api.call('GET', '/api/imports', { token: manager });
+  const view = (response) => response.data.items
+    .map((item) => `${item.importId} (${item.importedBy}, ${item.totalRecords} dòng, ${item.errorRecords} lỗi, ${item.importedAt})`).join('; ');
+  t.diagnostic(`nv.lan -> ${asLan.status}, ${asLan.data.total} lần nhập: ${view(asLan)}`);
+  t.diagnostic(`nv.minh -> ${asMinh.status}, ${asMinh.data.total} lần nhập: ${view(asMinh)}`);
+  t.diagnostic(`quản lý -> ${asManager.status}, ${asManager.data.total} lần nhập: ${view(asManager)}`);
+
+  assert.deepEqual(asLan.data.items.map((item) => item.importId), ['I001']);
+  assert.deepEqual(asMinh.data.items.map((item) => item.importId), ['I002']);
+  assert.deepEqual(asManager.data.items.map((item) => item.importId), ['I002', 'I001']);
+  assert.equal(asManager.data.total, 2);
+  assert.deepEqual([asLan.data.items[0].totalRecords, asLan.data.items[0].errorRecords], [2, 1]);
+  assert.equal(asManager.data.items[0].importedAt, '2026-10-05T14:30:00+07:00');
+});
