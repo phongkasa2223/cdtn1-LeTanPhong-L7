@@ -201,3 +201,15 @@ chứng của tiêu chí 3 (Nhất quán và Tích luỹ) trong rubric.
   chưa kiểm lại `deleted_at`, và kiểm tra "Quản lý cuối cùng" không khóa dòng, nên hai yêu cầu chồng nhau trong vài mili giây có thể cùng qua. (4) Chưa chặn đoán mật khẩu nhiều lần.
 - **Vì sao:** (1) và (2) cần thêm cột đơn vị vào lần nhập và hồ sơ, tức đổi ERD; (3) hiếm khi xảy ra; em ưu tiên các việc kiểm chứng được trước hạn nộp.
 - **Ảnh hưởng:** `src/services/user.service.js`, `customer.service.js`, `duplicate.service.js`; chưa có test cho bốn trường hợp này.
+
+## 23. Phản hồi của thầy về Bài tập 2: làm Docker, giữ nguyên màn hình tra cứu
+
+- **Thay đổi gì:** thầy nhận xét bài không có lỗi đáng kể, chỉ nêu chưa có Docker và chưa có màn hình tra cứu khách hàng; cả hai em đã ghi là chưa làm ở mục 1 của báo cáo Bài tập 2.
+  Với Docker em **làm** ở Bài tập 3: thêm `Dockerfile` và `docker-compose.yml` để dựng hệ thống bằng không quá 2 lệnh. Với màn hình tra cứu (UC6) em **giữ nguyên**, không làm thêm.
+  Thầy không nêu lỗi nào nên `docs/bug-log.md` không có mục mới từ phản hồi này.
+- **Vì sao:** (1) Docker: mục C1 của Bài tập 3 yêu cầu dựng lại hệ thống từ thư mục trống bằng không quá 2 lệnh và slide Buổi 13 khuyến nghị Dockerfile cùng docker-compose; `README.md` hiện cần 8 bước.
+  (2) Tra cứu: UC6 là SHOULD (`docs/srs.md` mục 6, FR7), đã ghi là cắt ở mục 9 và `README.md` mục 6; sáu thành phần của Bài tập 3 (Test Plan,
+  Test Report, Bug Log, gói đóng gói, Deployment Guide, tài liệu kỹ thuật) không có thành phần nào là tính năng mới. API tra cứu theo SĐT (E9, `GET /api/customers?phone=`) vẫn có và đã được
+  kiểm bằng TC-S7, TC-S11, TC-S12 và một bước của `npm run e2e`.
+- **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml` và `.dockerignore` sẽ được thêm; `README.md`, Test Plan mục 4 và Deployment Guide sẽ ghi cách dựng bằng Docker. Test Plan mục 1 sẽ ghi
+  giao diện tra cứu là phần chưa hiện thực nên không kiểm; cột "Test case (BT3)" của FR7 trong `docs/srs.md` mục 6 sẽ trỏ tới các test của API E9.
