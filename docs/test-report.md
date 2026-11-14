@@ -8,8 +8,8 @@ Kết quả chạy 12 test case của `docs/test-plan.md`. Mọi ca đã **chạ
 | :--- | :--- | :--- |
 | Lần 1, trước khi sửa bug | 11:28 | 12 ca chạy: **9 PASS, 3 FAIL** (TC-08, TC-11, TC-12) |
 | Lần cuối, sau khi sửa 3 bug | 11:39 | 12 ca chạy: **12 PASS, 0 FAIL** |
-| Cả bộ bằng một lệnh `npm test` | sau commit cuối của phần kiểm thử | **125 test, 125 PASS, 0 FAIL**, khoảng 9 giây (115 đơn vị, 6 tích hợp, 4 API); ảnh `npm-test.png` |
-| Cả bộ trong Docker, trên bản clone sạch từ GitHub | 14/11/2026 | `docker compose exec app npm test`: **125 test, 125 PASS, 0 FAIL**, khoảng 8 giây, trên Linux (Node 24.22) và MariaDB 10.11 (máy phát triển dùng Windows và MariaDB 10.4); ảnh ở mục 7 của PDF |
+| Cả bộ bằng một lệnh `npm test` | sau commit cuối của phần kiểm thử (07/11/2026) | **125 test, 125 PASS, 0 FAIL**, khoảng 9 giây (115 đơn vị, 6 tích hợp, 4 API) |
+| Cả bộ trong Docker, trên bản clone sạch từ GitHub | 14/11/2026 | `docker compose exec app npm test`: **125 test, 125 PASS, 0 FAIL**, khoảng 8 giây, trên Linux (Node 24.22) và MariaDB 10.11 (máy phát triển dùng Windows và MariaDB 10.4); ảnh chụp màn hình thật `npm-test.png` |
 
 Ba ca FAIL ở lần 1 tìm ra ba bug thật, mỗi bug đã sửa bằng một commit riêng: TC-12 tìm ra BUG-008, TC-11 tìm ra BUG-009, TC-08 tìm ra BUG-010. Sau mỗi lần sửa, cả bộ `npm test` được chạy lại trên đúng cây mã của commit đó: 117, 121 rồi 124 test, đều PASS hết (ảnh `BUG-008-fixed.png`, `BUG-009-fixed.png`, `BUG-010-fixed.png`).
 
@@ -79,6 +79,7 @@ Không còn bug Critical đang mở. Mỗi bug có đủ bảy dòng ở `docs/b
 
 ## 6. Ghi chú và hạn chế
 
-- **Ảnh chụp** là đầu ra thật của lệnh, đã ghi lại rồi vẽ thành ảnh kiểu terminal (cách đã dùng ở Bài tập 2, ghi ở `README.md` và phụ lục khai báo AI); thanh tiêu đề của ảnh ghi thời điểm chạy. Mọi ca đều chạy lại được bằng lệnh ở cột "Các bước".
+- **Nguồn của ảnh chụp.** `TC-01.png` đến `TC-12.png` và `npm-test.png` là **ảnh chụp màn hình thật** của cửa sổ terminal đang chạy lệnh, chụp ngày 14/11/2026 từ lần chạy trong Docker (bản clone sạch từ GitHub): lệnh là `docker compose exec app` cộng đúng lệnh ở cột "Các bước" (ví dụ `docker compose exec app node --test --test-name-pattern="^TC-V1 " tests/record-validator.test.js`), cả 12 ca PASS; tiêu đề cửa sổ và dòng giờ ở cuối ảnh cho biết thời điểm chạy. Riêng `TC-08-fail.png`, `TC-11-fail.png`, `TC-12-fail.png` và `BUG-008-fixed.png`, `BUG-009-fixed.png`, `BUG-010-fixed.png` là đầu ra thật của lần chạy ngày 07/11/2026 đã ghi lại rồi vẽ thành ảnh kiểu terminal, vì chúng phải chạy trên mã trước khi sửa hoặc trên cây mã của từng commit sửa; khai báo ở phụ lục AI. Mọi ca đều chạy lại được bằng lệnh ở cột "Các bước".
+- **TC-08 trong Docker:** ở mỗi vòng một yêu cầu xóa được và yêu cầu kia bị `LAST_MANAGER`, nhưng yêu cầu nào thắng thay đổi giữa các vòng (ví dụ vòng 2 hiện `LAST_MANAGER / xóa được`); điều bắt buộc là mọi vòng còn đúng 1 Quản lý.
 - **TC-08 là lỗi tranh chấp** nên trước khi sửa, một lần chạy có thể chưa gặp lỗi ở vòng nào; sau khi sửa, cả 10 vòng luôn đạt (đã lặp thêm 5 lần liên tiếp, đều PASS).
 - **Còn mở, chưa sửa:** hồ sơ khách hàng chưa gắn với đơn vị nên nhân viên đơn vị nào cũng sửa hoặc xóa mềm được hồ sơ bất kỳ (`docs/thay-doi-thiet-ke.md` mục 22, điểm 2; cần đổi ERD); giao diện React chưa có test tự động; chưa kiểm trên MySQL 8.0 thật.
