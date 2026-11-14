@@ -11,16 +11,33 @@ nhập file khách hàng, được hệ thống tự đánh dấu bản ghi lỗ
 **quản lý dữ liệu** xem báo cáo tỷ lệ lỗi theo từng lần nhập để theo dõi chất lượng dữ liệu.
 
 ## 2. Yêu cầu môi trường
-- Node.js 20.12 trở lên (đã thử trên Node 24, xem `.nvmrc`) và npm
-- MySQL 8.0 hoặc MariaDB 10.4 trở lên đang chạy (đang thử trên MariaDB 10.4.32 của XAMPP, xem `docs/thay-doi-thiet-ke.md` mục 4). Cần một tài khoản quản trị để tạo database, mặc định `root` không mật khẩu như XAMPP; đổi bằng `DB_ADMIN_USER` và `DB_ADMIN_PASSWORD` trong `.env`
+- **Chạy bằng Docker (cách dùng để chấm và triển khai):** Docker Engine hoặc Docker Desktop kèm Docker Compose v2, khoảng 2 GB đĩa trống, cổng 3000 còn trống (đổi bằng `APP_PORT` trong `.env`). Không cần cài Node.js hay cơ sở dữ liệu: image đã có Node 24 và MariaDB 10.11 chạy trong container. Chi tiết và cách kiểm tra: [`docs/deployment-guide.md`](docs/deployment-guide.md) (tiếng Anh).
+- **Chạy không dùng Docker (phát triển, mục 3b):** Node.js 22.9 trở lên (đã thử trên Node 24, xem `.nvmrc`) và npm; MySQL 8.0 hoặc MariaDB 10.4 trở lên đang chạy (thử trên MariaDB 10.4.32 của XAMPP, xem `docs/thay-doi-thiet-ke.md` mục 4).
 - Trình duyệt hiện đại (Chrome, Edge hoặc Firefox)
-- Biến môi trường: xem `.env.example` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_POOL_MAX`, `DB_TZ_OFFSET`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `LOG_LEVEL`; `E2E_BASE_URL` và `E2E_PASSWORD` chỉ dùng cho `npm run e2e`; `TEST_DB_NAME` tùy chọn, tên CSDL thử của `npm test`)
+- Biến môi trường: xem `.env.example` (đủ mọi biến kèm giá trị mẫu chạy được: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_POOL_MAX`, `DB_TZ_OFFSET`, `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `PORT`, `APP_PORT`, `SEED_DEMO_DATA`, `LOG_LEVEL`; `E2E_BASE_URL`, `E2E_PASSWORD` và `TEST_DB_NAME` tùy chọn). Giá trị mật khẩu và khóa trong file mẫu chỉ để chạy thử, phải đổi khi dùng thật.
 
 ## 3. Hướng dẫn chạy
-Mỗi bước một lệnh, chạy trong thư mục gốc của repo:
+Sau khi clone repo và vào thư mục gốc (`git clone https://github.com/phongkasa2223/cdtn1-LeTanPhong-L7.git`, rồi `cd cdtn1-LeTanPhong-L7`), chạy **đúng 2 lệnh**:
 
 ```bash
-git clone https://github.com/phongkasa2223/cdtn1-LeTanPhong-L7.git   # 0. lấy mã nguồn, rồi: cd cdtn1-LeTanPhong-L7
+cp .env.example .env              # 1. tạo cấu hình (Windows cmd: copy .env.example .env)
+docker compose up -d --build      # 2. dựng image, bật MariaDB và ứng dụng, tự tạo bảng và nạp dữ liệu mẫu
+```
+
+Chờ khoảng một phút (lần đầu dựng image lâu hơn), rồi mở http://localhost:3000. Kiểm tra hệ thống đã chạy đúng:
+
+```bash
+docker compose ps                          # cả hai dịch vụ db và app phải ở trạng thái healthy
+curl -s http://localhost:3000/health       # {"status":"ok","db":"ok"}
+docker compose exec app npm test           # 125 test, kỳ vọng "pass 125, fail 0"
+docker compose exec app npm run seed       # nạp lại dữ liệu mẫu, chạy lần mấy cũng không nhân đôi dòng
+docker compose down                        # dừng, giữ dữ liệu; thêm -v để xóa luôn dữ liệu
+```
+
+### 3b. Chạy không dùng Docker (phát triển)
+Mỗi bước một lệnh, cần Node.js và MariaDB/MySQL đã cài sẵn, chạy trong thư mục gốc của repo:
+
+```bash
 npm run env:init     # 1. tạo .env, mật khẩu DB và JWT_SECRET được sinh ngẫu nhiên
 npm install          # 2. cài thư viện backend
 npm run db:setup     # 3. tạo database mekong_dq, database thử mekong_dq_test (cho npm test) và tài khoản ứng dụng
@@ -30,6 +47,7 @@ npm run gen:data     # 6. sinh file data/customers_raw.csv (3.000 dòng giả, c
 npm run build        # 7. cài thư viện và build giao diện React
 npm start            # 8. chạy ứng dụng tại http://localhost:3000
 ```
+Chạy bằng Docker thì lấy file CSV mẫu 3.000 dòng (thư mục `data/` đã được `.gitignore` chặn file `.csv`) như sau: `docker compose exec app node scripts/gen-sample-csv.js 3000 /tmp/customers_raw.csv`, rồi `mkdir -p data`, rồi `docker compose cp app:/tmp/customers_raw.csv ./data/customers_raw.csv`.
 
 Đăng nhập thử (mật khẩu chung của tài khoản mẫu: `Demo@123`, chỉ dùng khi phát triển):
 
