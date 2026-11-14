@@ -1,0 +1,1211 @@
+[
+  {
+    "name": "health",
+    "request": {
+      "method": "GET",
+      "path": "/health",
+      "authorization": "none"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "status": "ok",
+        "db": "ok"
+      }
+    }
+  },
+  {
+    "name": "login_ok",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "nv.lan",
+        "password": "Demo@123"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "accessToken": "eyJhbGciOiJIUzI1...",
+        "expiresIn": 3600,
+        "user": {
+          "username": "nv.lan",
+          "fullName": "Chị Lan",
+          "role": "DATA_STAFF"
+        }
+      }
+    }
+  },
+  {
+    "name": "login_manager",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "ql.hung",
+        "password": "Demo@123"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "accessToken": "eyJhbGciOiJIUzI1...",
+        "expiresIn": 3600,
+        "user": {
+          "username": "ql.hung",
+          "fullName": "Anh Hùng",
+          "role": "DATA_MANAGER"
+        }
+      }
+    }
+  },
+  {
+    "name": "login_wrong_password",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "nv.lan",
+        "password": "SaiMatKhau1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "INVALID_CREDENTIALS",
+          "message": "Sai tên đăng nhập hoặc mật khẩu."
+        }
+      }
+    }
+  },
+  {
+    "name": "login_throttle_attempt_1",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "nv.thu.sai",
+        "password": "SaiMatKhau1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "INVALID_CREDENTIALS",
+          "message": "Sai tên đăng nhập hoặc mật khẩu."
+        }
+      }
+    }
+  },
+  {
+    "name": "login_throttle_attempt_2",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "nv.thu.sai",
+        "password": "SaiMatKhau1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "INVALID_CREDENTIALS",
+          "message": "Sai tên đăng nhập hoặc mật khẩu."
+        }
+      }
+    }
+  },
+  {
+    "name": "login_throttle_attempt_3",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "nv.thu.sai",
+        "password": "SaiMatKhau1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "INVALID_CREDENTIALS",
+          "message": "Sai tên đăng nhập hoặc mật khẩu."
+        }
+      }
+    }
+  },
+  {
+    "name": "login_throttle_attempt_4",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "nv.thu.sai",
+        "password": "SaiMatKhau1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "INVALID_CREDENTIALS",
+          "message": "Sai tên đăng nhập hoặc mật khẩu."
+        }
+      }
+    }
+  },
+  {
+    "name": "login_throttle_attempt_5",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "nv.thu.sai",
+        "password": "SaiMatKhau1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "INVALID_CREDENTIALS",
+          "message": "Sai tên đăng nhập hoặc mật khẩu."
+        }
+      }
+    }
+  },
+  {
+    "name": "login_throttled",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": {
+        "username": "nv.thu.sai",
+        "password": "SaiMatKhau1"
+      }
+    },
+    "response": {
+      "status": 429,
+      "headers": {
+        "retry-after": "900"
+      },
+      "body": {
+        "error": {
+          "code": "TOO_MANY_ATTEMPTS",
+          "message": "Đăng nhập sai quá nhiều lần. Thử lại sau 900 giây.",
+          "details": {
+            "retryAfterSeconds": 900
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "payload_too_large",
+    "request": {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "authorization": "none",
+      "body": "{ \"username\": \"nv.lan\", \"password\": \"<300 KB of x>\" }"
+    },
+    "response": {
+      "status": 413,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "PAYLOAD_TOO_LARGE",
+          "message": "Nội dung gửi lên lớn hơn 256 KB."
+        }
+      }
+    }
+  },
+  {
+    "name": "no_token",
+    "request": {
+      "method": "GET",
+      "path": "/api/customers",
+      "authorization": "none"
+    },
+    "response": {
+      "status": 401,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "UNAUTHORIZED",
+          "message": "Chưa đăng nhập."
+        }
+      }
+    }
+  },
+  {
+    "name": "customers_list_staff",
+    "request": {
+      "method": "GET",
+      "path": "/api/customers?page=1&size=2",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "data": [
+          {
+            "customerId": "C000001",
+            "fullName": "Nguyễn Văn An",
+            "phone": "090****567",
+            "email": "an.nguyen@gmail.com",
+            "address": null,
+            "birthDate": "1990-05-12",
+            "createdDate": "2024-03-10",
+            "mergedInto": null
+          },
+          {
+            "customerId": "C000002",
+            "fullName": "Nguyen Van An",
+            "phone": "098****321",
+            "email": "an.nguyen@gmail.com",
+            "address": "45 Nguyễn Huệ, Q.1, TP.HCM",
+            "birthDate": "1990-05-12",
+            "createdDate": "2025-01-15",
+            "mergedInto": null
+          }
+        ],
+        "page": 1,
+        "size": 2,
+        "total": 12
+      }
+    }
+  },
+  {
+    "name": "customers_list_manager",
+    "request": {
+      "method": "GET",
+      "path": "/api/customers?page=1&size=2",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "data": [
+          {
+            "customerId": "C000001",
+            "fullName": "Nguyễn Văn An",
+            "phone": "0901234567",
+            "email": "an.nguyen@gmail.com",
+            "address": null,
+            "birthDate": "1990-05-12",
+            "createdDate": "2024-03-10",
+            "mergedInto": null
+          },
+          {
+            "customerId": "C000002",
+            "fullName": "Nguyen Van An",
+            "phone": "0987654321",
+            "email": "an.nguyen@gmail.com",
+            "address": "45 Nguyễn Huệ, Q.1, TP.HCM",
+            "birthDate": "1990-05-12",
+            "createdDate": "2025-01-15",
+            "mergedInto": null
+          }
+        ],
+        "page": 1,
+        "size": 2,
+        "total": 12
+      }
+    }
+  },
+  {
+    "name": "customers_by_phone",
+    "request": {
+      "method": "GET",
+      "path": "/api/customers?phone=0901234567",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "data": {
+          "customerId": "C000001",
+          "fullName": "Nguyễn Văn An",
+          "phone": "090****567",
+          "email": "an.nguyen@gmail.com",
+          "address": null,
+          "birthDate": "1990-05-12",
+          "createdDate": "2024-03-10",
+          "mergedInto": null
+        }
+      }
+    }
+  },
+  {
+    "name": "customer_get",
+    "request": {
+      "method": "GET",
+      "path": "/api/customers/C000001",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "data": {
+          "customerId": "C000001",
+          "fullName": "Nguyễn Văn An",
+          "phone": "090****567",
+          "email": "an.nguyen@gmail.com",
+          "address": null,
+          "birthDate": "1990-05-12",
+          "createdDate": "2024-03-10",
+          "mergedInto": null
+        }
+      }
+    }
+  },
+  {
+    "name": "customer_get_not_found",
+    "request": {
+      "method": "GET",
+      "path": "/api/customers/C999999",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 404,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "CUSTOMER_NOT_FOUND",
+          "message": "Không tìm thấy hồ sơ khách hàng C999999."
+        }
+      }
+    }
+  },
+  {
+    "name": "customer_create",
+    "request": {
+      "method": "POST",
+      "path": "/api/customers",
+      "authorization": "Bearer <token>",
+      "body": {
+        "fullName": "Phạm Thu Hà",
+        "phone": "0935123456",
+        "email": "ha.pham@example.com",
+        "address": "12 Lê Lợi, Q.1, TP.HCM",
+        "birthDate": "1994-07-21"
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "location": "/api/customers/C000013"
+      },
+      "body": {
+        "data": {
+          "customerId": "C000013",
+          "fullName": "Phạm Thu Hà",
+          "phone": "093****456",
+          "email": "ha.pham@example.com",
+          "address": "12 Lê Lợi, Q.1, TP.HCM",
+          "birthDate": "1994-07-21",
+          "createdDate": "2026-11-14",
+          "mergedInto": null
+        }
+      }
+    }
+  },
+  {
+    "name": "customer_create_invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/customers",
+      "authorization": "Bearer <token>",
+      "body": {
+        "fullName": "A",
+        "phone": "09123456"
+      }
+    },
+    "response": {
+      "status": 400,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Dữ liệu không hợp lệ ở các trường: fullName, phone",
+          "details": [
+            {
+              "field": "fullName",
+              "code": "NAME_LENGTH",
+              "message": "Họ tên dài 2–100 ký tự."
+            },
+            {
+              "field": "phone",
+              "code": "PHONE_LENGTH",
+              "message": "Số điện thoại phải có 10 chữ số, nhận được 8."
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "customer_create_duplicate_phone",
+    "request": {
+      "method": "POST",
+      "path": "/api/customers",
+      "authorization": "Bearer <token>",
+      "body": {
+        "fullName": "Người Trùng Số",
+        "phone": "0935 123 456"
+      }
+    },
+    "response": {
+      "status": 409,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "DUPLICATE_PHONE",
+          "message": "Số điện thoại 0935123456 đã thuộc hồ sơ C000013.",
+          "details": {
+            "customerId": "C000013",
+            "deleted": false
+          }
+        }
+      }
+    }
+  },
+  {
+    "name": "customer_update",
+    "request": {
+      "method": "PUT",
+      "path": "/api/customers/C000013",
+      "authorization": "Bearer <token>",
+      "body": {
+        "fullName": "Phạm Thu Hà",
+        "phone": "0935123456",
+        "email": "ha.pham@example.com",
+        "address": "45 Nguyễn Huệ, Q.1, TP.HCM",
+        "birthDate": "1994-07-21"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "data": {
+          "customerId": "C000013",
+          "fullName": "Phạm Thu Hà",
+          "phone": "093****456",
+          "email": "ha.pham@example.com",
+          "address": "45 Nguyễn Huệ, Q.1, TP.HCM",
+          "birthDate": "1994-07-21",
+          "createdDate": "2026-11-14",
+          "mergedInto": null
+        }
+      }
+    }
+  },
+  {
+    "name": "customer_create_as_manager",
+    "request": {
+      "method": "POST",
+      "path": "/api/customers",
+      "authorization": "Bearer <token>",
+      "body": {
+        "fullName": "Quản Lý Thử",
+        "phone": "0935123457"
+      }
+    },
+    "response": {
+      "status": 403,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "FORBIDDEN",
+          "message": "Vai trò của bạn không được dùng chức năng này."
+        }
+      }
+    }
+  },
+  {
+    "name": "customer_delete",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/customers/C000013",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 204,
+      "headers": {},
+      "body": null
+    }
+  },
+  {
+    "name": "customer_delete_again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/customers/C000013",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 404,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "CUSTOMER_NOT_FOUND",
+          "message": "Không tìm thấy hồ sơ khách hàng C000013."
+        }
+      }
+    }
+  },
+  {
+    "name": "imports_list",
+    "request": {
+      "method": "GET",
+      "path": "/api/imports?page=1&size=5",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "page": 1,
+        "size": 5,
+        "total": 1,
+        "items": [
+          {
+            "importId": "I001",
+            "source": "RETAIL",
+            "fileName": "customers_retail_demo.csv",
+            "importedBy": "nv.lan",
+            "importedAt": "2026-10-01T09:00:00+07:00",
+            "totalRecords": 2,
+            "errorRecords": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "imports_create",
+    "request": {
+      "method": "POST",
+      "path": "/api/imports",
+      "authorization": "Bearer <token>",
+      "body": "multipart/form-data: source=RETAIL, file=khach_hang_ban_le_mau.csv (6 dòng dữ liệu)"
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "location": "/api/imports/I003/errors"
+      },
+      "body": {
+        "importId": "I003",
+        "source": "RETAIL",
+        "fileName": "khach_hang_ban_le_mau.csv",
+        "totalRecords": 6,
+        "validRecords": 3,
+        "errorRecords": 3,
+        "errorsByCode": {
+          "MISSING_FIELD": 1,
+          "PHONE_LENGTH": 1,
+          "PHONE_PREFIX": 1,
+          "PHONE_CHAR": 0,
+          "EMAIL_INVALID": 0,
+          "DATE_INVALID": 0
+        },
+        "newCustomers": 3,
+        "attachedRecords": 0,
+        "newDuplicatePairs": 2,
+        "importedBy": "nv.lan",
+        "importedAt": "2026-11-14T00:53:42+07:00"
+      }
+    }
+  },
+  {
+    "name": "imports_errors",
+    "request": {
+      "method": "GET",
+      "path": "/api/imports/I003/errors?page=1&size=2",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "importId": "I003",
+        "code": null,
+        "page": 1,
+        "size": 2,
+        "total": 3,
+        "items": [
+          {
+            "recordId": 5,
+            "rowNumber": 3,
+            "original": {
+              "ho_ten": "Phạm Văn Lực",
+              "so_dien_thoai": "09123456",
+              "email": null,
+              "dia_chi": null,
+              "ngay_sinh": null,
+              "ngay_tao": "2026-11-01"
+            },
+            "normalized": {
+              "fullName": "Phạm Văn Lực",
+              "phone": "09123456",
+              "email": null,
+              "address": null,
+              "birthDate": null,
+              "createdDate": "2026-11-01"
+            },
+            "errors": [
+              {
+                "code": "PHONE_LENGTH",
+                "field": "phone",
+                "message": "Số điện thoại phải có 10 chữ số, nhận được 8."
+              }
+            ]
+          },
+          {
+            "recordId": 6,
+            "rowNumber": 4,
+            "original": {
+              "ho_ten": "Lê Thị Nở",
+              "so_dien_thoai": "0111222333",
+              "email": null,
+              "dia_chi": null,
+              "ngay_sinh": null,
+              "ngay_tao": "2026-11-01"
+            },
+            "normalized": {
+              "fullName": "Lê Thị Nở",
+              "phone": "0111222333",
+              "email": null,
+              "address": null,
+              "birthDate": null,
+              "createdDate": "2026-11-01"
+            },
+            "errors": [
+              {
+                "code": "PHONE_PREFIX",
+                "field": "phone",
+                "message": "Đầu số 011 không thuộc danh mục đầu số di động."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "imports_errors_by_code",
+    "request": {
+      "method": "GET",
+      "path": "/api/imports/I003/errors?code=PHONE_LENGTH",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "importId": "I003",
+        "code": "PHONE_LENGTH",
+        "page": 1,
+        "size": 50,
+        "total": 1,
+        "items": [
+          {
+            "recordId": 5,
+            "rowNumber": 3,
+            "original": {
+              "ho_ten": "Phạm Văn Lực",
+              "so_dien_thoai": "09123456",
+              "email": null,
+              "dia_chi": null,
+              "ngay_sinh": null,
+              "ngay_tao": "2026-11-01"
+            },
+            "normalized": {
+              "fullName": "Phạm Văn Lực",
+              "phone": "09123456",
+              "email": null,
+              "address": null,
+              "birthDate": null,
+              "createdDate": "2026-11-01"
+            },
+            "errors": [
+              {
+                "code": "PHONE_LENGTH",
+                "field": "phone",
+                "message": "Số điện thoại phải có 10 chữ số, nhận được 8."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "imports_errors_not_found",
+    "request": {
+      "method": "GET",
+      "path": "/api/imports/I999/errors",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 404,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "IMPORT_NOT_FOUND",
+          "message": "Không tìm thấy lần nhập I999."
+        }
+      }
+    }
+  },
+  {
+    "name": "imports_missing_columns",
+    "request": {
+      "method": "POST",
+      "path": "/api/imports",
+      "authorization": "Bearer <token>",
+      "body": "multipart/form-data: source=RETAIL, file=thieu_cot.csv (thiếu cột so_dien_thoai, ngay_tao)"
+    },
+    "response": {
+      "status": 400,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "MISSING_COLUMNS",
+          "message": "File thiếu cột bắt buộc: so_dien_thoai, dia_chi, ngay_sinh, ngay_tao.",
+          "details": [
+            "so_dien_thoai",
+            "dia_chi",
+            "ngay_sinh",
+            "ngay_tao"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "pairs_list",
+    "request": {
+      "method": "GET",
+      "path": "/api/duplicate-pairs?status=PENDING&page=1&size=2",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "page": 1,
+        "size": 2,
+        "total": 4,
+        "items": [
+          {
+            "pairId": "P0003",
+            "matchedBy": "EMAIL",
+            "similarity": 1,
+            "status": "PENDING",
+            "customerA": {
+              "customerId": "C000001",
+              "fullName": "Nguyễn Văn An",
+              "phone": "090****567",
+              "source": "RETAIL"
+            },
+            "customerB": {
+              "customerId": "C000016",
+              "fullName": "Nguyen Van An",
+              "phone": "090****999",
+              "source": "RETAIL"
+            }
+          },
+          {
+            "pairId": "P0004",
+            "matchedBy": "EMAIL",
+            "similarity": 1,
+            "status": "PENDING",
+            "customerA": {
+              "customerId": "C000002",
+              "fullName": "Nguyen Van An",
+              "phone": "098****321",
+              "source": null
+            },
+            "customerB": {
+              "customerId": "C000016",
+              "fullName": "Nguyen Van An",
+              "phone": "090****999",
+              "source": "RETAIL"
+            }
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "pair_get",
+    "request": {
+      "method": "GET",
+      "path": "/api/duplicate-pairs/P0001",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "pairId": "P0001",
+        "matchedBy": "EMAIL",
+        "similarity": 0.93,
+        "status": "PENDING",
+        "customerA": {
+          "customerId": "C000001",
+          "fullName": "Nguyễn Văn An",
+          "phone": "090****567",
+          "source": "RETAIL",
+          "email": "an.nguyen@gmail.com",
+          "address": null,
+          "birthDate": "1990-05-12"
+        },
+        "customerB": {
+          "customerId": "C000002",
+          "fullName": "Nguyen Van An",
+          "phone": "098****321",
+          "source": null,
+          "email": "an.nguyen@gmail.com",
+          "address": "45 Nguyễn Huệ, Q.1, TP.HCM",
+          "birthDate": "1990-05-12"
+        },
+        "differentFields": [
+          "fullName",
+          "phone"
+        ]
+      }
+    }
+  },
+  {
+    "name": "pair_decision_merge",
+    "request": {
+      "method": "POST",
+      "path": "/api/duplicate-pairs/P0001/decision",
+      "authorization": "Bearer <token>",
+      "body": {
+        "action": "MERGE",
+        "keepCustomerId": "C000001",
+        "fieldChoices": {
+          "fullName": "C000001",
+          "phone": "C000001"
+        }
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "pairId": "P0001",
+        "status": "MERGED",
+        "survivingCustomerId": "C000001",
+        "mergedCustomerId": "C000002",
+        "result": {
+          "fullName": "Nguyễn Văn An",
+          "phone": "090****567",
+          "email": "an.nguyen@gmail.com",
+          "address": "45 Nguyễn Huệ, Q.1, TP.HCM"
+        },
+        "decidedBy": "nv.lan",
+        "decidedAt": "2026-11-14T00:53:42+07:00"
+      }
+    }
+  },
+  {
+    "name": "pair_decision_again",
+    "request": {
+      "method": "POST",
+      "path": "/api/duplicate-pairs/P0001/decision",
+      "authorization": "Bearer <token>",
+      "body": {
+        "action": "KEEP_SEPARATE"
+      }
+    },
+    "response": {
+      "status": 409,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "PAIR_ALREADY_DECIDED",
+          "message": "Cặp P0001 đã được xử lý."
+        }
+      }
+    }
+  },
+  {
+    "name": "pair_decision_keep_separate",
+    "request": {
+      "method": "POST",
+      "path": "/api/duplicate-pairs/P0002/decision",
+      "authorization": "Bearer <token>",
+      "body": {
+        "action": "KEEP_SEPARATE"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "pairId": "P0002",
+        "status": "KEEP_SEPARATE",
+        "decidedBy": "nv.lan",
+        "decidedAt": "2026-11-14T00:53:42+07:00"
+      }
+    }
+  },
+  {
+    "name": "pair_get_not_found",
+    "request": {
+      "method": "GET",
+      "path": "/api/duplicate-pairs/P9999",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 404,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "PAIR_NOT_FOUND",
+          "message": "Không tìm thấy cặp nghi trùng P9999."
+        }
+      }
+    }
+  },
+  {
+    "name": "users_list",
+    "request": {
+      "method": "GET",
+      "path": "/api/users?page=1&size=2",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "page": 1,
+        "size": 2,
+        "total": 3,
+        "items": [
+          {
+            "userId": 1,
+            "username": "nv.lan",
+            "fullName": "Chị Lan",
+            "role": "DATA_STAFF",
+            "storeCode": "CH01",
+            "createdAt": "2026-11-14T00:51:30+07:00"
+          },
+          {
+            "userId": 2,
+            "username": "nv.minh",
+            "fullName": "Anh Minh",
+            "role": "DATA_STAFF",
+            "storeCode": "CH02",
+            "createdAt": "2026-11-14T00:51:30+07:00"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "users_list_as_staff",
+    "request": {
+      "method": "GET",
+      "path": "/api/users",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 403,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "FORBIDDEN",
+          "message": "Vai trò của bạn không được dùng chức năng này."
+        }
+      }
+    }
+  },
+  {
+    "name": "user_create",
+    "request": {
+      "method": "POST",
+      "path": "/api/users",
+      "authorization": "Bearer <token>",
+      "body": {
+        "username": "nv.thu",
+        "password": "MatKhau123",
+        "fullName": "Chị Thu",
+        "role": "DATA_STAFF",
+        "storeCode": "CH03"
+      }
+    },
+    "response": {
+      "status": 201,
+      "headers": {
+        "location": "/api/users/4"
+      },
+      "body": {
+        "data": {
+          "userId": 4,
+          "username": "nv.thu",
+          "fullName": "Chị Thu",
+          "role": "DATA_STAFF",
+          "storeCode": "CH03",
+          "createdAt": "2026-11-14T00:53:43+07:00"
+        }
+      }
+    }
+  },
+  {
+    "name": "user_create_taken",
+    "request": {
+      "method": "POST",
+      "path": "/api/users",
+      "authorization": "Bearer <token>",
+      "body": {
+        "username": "nv.thu",
+        "password": "MatKhau123",
+        "fullName": "Chị Thu",
+        "role": "DATA_STAFF",
+        "storeCode": "CH03"
+      }
+    },
+    "response": {
+      "status": 409,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "USERNAME_TAKEN",
+          "message": "Tên đăng nhập đã được dùng."
+        }
+      }
+    }
+  },
+  {
+    "name": "user_get",
+    "request": {
+      "method": "GET",
+      "path": "/api/users/4",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "data": {
+          "userId": 4,
+          "username": "nv.thu",
+          "fullName": "Chị Thu",
+          "role": "DATA_STAFF",
+          "storeCode": "CH03",
+          "createdAt": "2026-11-14T00:53:43+07:00"
+        }
+      }
+    }
+  },
+  {
+    "name": "user_update",
+    "request": {
+      "method": "PUT",
+      "path": "/api/users/4",
+      "authorization": "Bearer <token>",
+      "body": {
+        "fullName": "Chị Thu Hà",
+        "role": "DATA_STAFF",
+        "storeCode": "CH02"
+      }
+    },
+    "response": {
+      "status": 200,
+      "headers": {},
+      "body": {
+        "data": {
+          "userId": 4,
+          "username": "nv.thu",
+          "fullName": "Chị Thu Hà",
+          "role": "DATA_STAFF",
+          "storeCode": "CH02",
+          "createdAt": "2026-11-14T00:53:43+07:00"
+        }
+      }
+    }
+  },
+  {
+    "name": "user_delete",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/users/4",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 204,
+      "headers": {},
+      "body": null
+    }
+  },
+  {
+    "name": "user_delete_has_history",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/users/1",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 409,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "USER_HAS_HISTORY",
+          "message": "Tài khoản nv.lan đã có lịch sử thao tác (lần nhập hoặc quyết định duyệt cặp) nên không xóa được."
+        }
+      }
+    }
+  },
+  {
+    "name": "user_not_found",
+    "request": {
+      "method": "GET",
+      "path": "/api/users/999999",
+      "authorization": "Bearer <token>"
+    },
+    "response": {
+      "status": 404,
+      "headers": {},
+      "body": {
+        "error": {
+          "code": "USER_NOT_FOUND",
+          "message": "Không tìm thấy tài khoản 999999."
+        }
+      }
+    }
+  }
+]
