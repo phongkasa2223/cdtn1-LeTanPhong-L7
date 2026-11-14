@@ -211,8 +211,8 @@ chứng của tiêu chí 3 (Nhất quán và Tích luỹ) trong rubric.
   (2) Tra cứu: UC6 là SHOULD (`docs/srs.md` mục 6, FR7), đã ghi là cắt ở mục 9 và `README.md` mục 6; sáu thành phần của Bài tập 3 (Test Plan,
   Test Report, Bug Log, gói đóng gói, Deployment Guide, tài liệu kỹ thuật) không có thành phần nào là tính năng mới. API tra cứu theo SĐT (E9, `GET /api/customers?phone=`) vẫn có và đã được
   kiểm bằng TC-S7, TC-S11, TC-S12 và một bước của `npm run e2e`.
-- **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml` và `.dockerignore` sẽ được thêm; `README.md`, Test Plan mục 4 và Deployment Guide sẽ ghi cách dựng bằng Docker. Test Plan mục 1 sẽ ghi
-  giao diện tra cứu là phần chưa hiện thực nên không kiểm; cột "Test case (BT3)" của FR7 trong `docs/srs.md` mục 6 sẽ trỏ tới các test của API E9.
+- **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml` và `.dockerignore` đã thêm (chi tiết ở mục 26); `README.md`, Test Plan mục 4 và Deployment Guide ghi cách dựng bằng Docker. Test Plan mục 1 ghi
+  giao diện tra cứu là phần chưa hiện thực nên không kiểm; cột "Test case (BT3)" của FR7 trong `docs/srs.md` mục 6 trỏ tới các test của API E9.
 
 ## 24. Chặn đoán mật khẩu nhiều lần (BUG-009)
 
@@ -232,3 +232,26 @@ chứng của tiêu chí 3 (Nhất quán và Tích luỹ) trong rubric.
   khóa dòng (TC-DB5), nên em chưa sửa phần này.
 - **Ảnh hưởng:** `src/services/user.service.js`, `src/repositories/app-user.repository.js` (`lockManagers`), `src/app.js` (thêm `userUow`), `tests/integration/user.db.test.js` (TC-DB6),
   `tests/user.service.test.js` (TC-U15, TC-U16).
+
+## 26. Đóng gói bằng Docker Compose để dựng từ thư mục trống bằng 2 lệnh
+
+- **Thay đổi gì:** thêm `Dockerfile` (hai giai đoạn: build giao diện React, rồi image Node 24 Alpine chạy bằng user `node`), `docker-compose.yml` (dịch vụ `db` là MariaDB 10.11 và `app`; `app` chỉ khởi động
+  khi `db` đã `healthy`; cổng CSDL không mở ra máy chủ; cổng ứng dụng là `APP_PORT`, mặc định 3000), `.dockerignore`, `.gitattributes` (giữ xuống dòng LF cho file container đọc), `docker/initdb/01-databases.sql`
+  (tạo `mekong_dq` và `mekong_dq_test` với `utf8mb4_unicode_ci`, cấp quyền cho user `mekong`) và `scripts/docker-start.js` (chờ CSDL, chạy migrations, nạp seeds nếu `SEED_DEMO_DATA` không phải `false`, rồi chạy API).
+  `.env.example` có giá trị mẫu chạy được cho `DB_PASSWORD` và `JWT_SECRET`; các script npm đổi `--env-file` thành `--env-file-if-exists` và `engines` đổi từ `>=20.12` thành `>=22.9`
+  (cờ mới có từ Node 22.9). README mục 3 chỉ còn 2 lệnh (`cp .env.example .env`, `docker compose up -d --build`), luồng 8 bước cũ chuyển xuống mục 3b.
+- **Vì sao:** (1) Mục C1 của Bài tập 3 là dựng lại từ thư mục trống bằng không quá 2 lệnh, không cần hỏi tác giả. (2) Image `mariadb` tự tạo user ở mọi máy (`'%'`), còn `db:setup` tạo user `'localhost'` nên
+  không dùng được giữa hai container; vì vậy CSDL và quyền do file SQL khởi tạo lo. Bảng mã `utf8mb4_unicode_ci` phải đặt tường minh vì việc tìm cặp nghi trùng dựa vào nó và các bảng không ghi COLLATE.
+  (3) Dùng script Node thay vì shell để không dính CRLF và quyền thực thi khi clone từ Windows. (4) `--env-file-if-exists` để `docker compose exec app npm run seed` chạy được trong container không có file `.env`.
+  (5) Giá trị mẫu trong `.env.example` công khai nên Deployment Guide và checklist bảo mật ghi rõ phải đổi khi dùng thật; chạy ngoài Docker thì `npm run env:init` vẫn thay bằng chuỗi ngẫu nhiên.
+- **Ảnh hưởng:** `Dockerfile`, `docker-compose.yml`, `.dockerignore`, `.gitattributes`, `docker/initdb/`, `scripts/docker-start.js`, `.env.example`, `package.json`, `README.md`, `docs/deployment-guide.md`,
+  `docs/test-plan.md` mục 4. Đã kiểm bằng phép thử máy trắng: clone từ GitHub vào thư mục trống, hai lệnh trên, `docker compose ps` cả hai dịch vụ `healthy`, `/health` `ok`, `docker compose exec app npm test`
+  125 test PASS (trên Linux và MariaDB 10.11), chạy seed lần hai không đổi số dòng. Chưa kiểm trên MySQL 8.0 thật.
+
+## 27. Tài liệu kỹ thuật bằng tiếng Anh và checklist bảo mật
+
+- **Thay đổi gì:** thêm `docs/api-docs/README.md` (tiếng Anh, 18 endpoint đang chạy, mỗi endpoint đủ 7 mục và ví dụ request, response thật), `docs/api-docs/examples.json` (kết quả ghi lại nguyên văn) và
+  `scripts/capture-api-examples.js` (gọi từng endpoint của hệ thống đang chạy để ghi ví dụ); `docs/deployment-guide.md` (tiếng Anh, 5 mục); `docs/checklist-bao-mat.md` (7 mục, mỗi mục kèm lệnh và kết quả).
+- **Vì sao:** Bài tập 3 yêu cầu tài liệu API đủ mọi endpoint với ví dụ chép từ lần chạy thật, Deployment Guide tiếng Anh và checklist bảo mật có minh chứng. `docs/api-contract.md` (tiếng Việt, từ Bài tập 1) giữ nguyên làm bản thiết kế;
+  hai endpoint E8 và E10 có trong thiết kế nhưng chưa hiện thực nên API docs ghi riêng ở mục 3 thay vì mô tả như đã có.
+- **Ảnh hưởng:** chỉ thêm tài liệu và một script chạy tay; không đổi mã ứng dụng. Hạn chế của checklist mục 3 (hồ sơ khách hàng chưa gắn với đơn vị) ghi trung thực ở `docs/checklist-bao-mat.md`.

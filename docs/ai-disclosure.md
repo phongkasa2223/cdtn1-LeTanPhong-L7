@@ -1,8 +1,8 @@
 # BẢNG KHAI BÁO SỬ DỤNG CÔNG CỤ AI HỖ TRỢ
 **Học phần:** Chuyên đề Tốt nghiệp 1 (Specialized Graduation Topic I)  
 **Học kỳ:** HK1, Năm học 2026 – 2027  
-**Bài nộp:** Bài tập 2 – Hiện thực hóa module cốt lõi (`BT2_2374802010384_LeTanPhong.pdf`, tag `v0.2`); gồm cả khai báo của Bài tập 1  
-**Giai đoạn:** Buổi 1–12 (Tuần 1–6)
+**Bài nộp:** Bài tập 3 – Kiểm thử và Đóng gói prototype (`BT3_2374802010384_LeTanPhong.pdf`, tag `v1.0`); gồm cả khai báo của Bài tập 1 và 2  
+**Giai đoạn:** Buổi 1–16 (Tuần 1–8)
 
 ---
 
@@ -16,6 +16,17 @@
 ---
 
 ### II. BẢNG KHAI BÁO CHI TIẾT
+
+#### II.0. Bài tập 3 – Kiểm thử và Đóng gói prototype (Buổi 13–16)
+
+| Công cụ AI | Dùng vào việc gì | Áp dụng ở phần nào (File / Mục) | Em đã kiểm chứng thế nào |
+| :--- | :--- | :--- | :--- |
+| **Claude Code (Anthropic)** | Kiểm thử: soạn Test Plan bốn mục, dựng hạ tầng test chạm CSDL thật (CSDL thử `mekong_dq_test`), viết test tích hợp và test API, chọn 12 test case đủ năm loại và soạn Test Report kèm bảng truy vết quy tắc đến test | `docs/test-plan.md`, `docs/test-report.md`, `tests/helpers/`, `tests/integration/`, `tests/api/`, cột "Test case (BT3)" của `docs/srs.md` | Chạy 12 lệnh của Test Report, lần 1 có 3 ca FAIL được giữ nguyên rồi mới sửa; chạy `npm test` (125 test PASS); mỗi ca chạy lại được bằng đúng một lệnh ghi ở cột "Các bước" |
+| **Claude Code (Anthropic)** | Tìm và sửa ba bug do test của Bài tập 3 phát hiện (BUG-008 body JSON quá lớn trả 500, BUG-009 đoán mật khẩu không giới hạn, BUG-010 hai Quản lý xóa nhau còn 0 Quản lý) và đề xuất phân loại lại mức độ năm bug cũ theo cây hai câu hỏi của thầy (em duyệt) | `src/app.js`, `src/middleware/login-throttle.js`, `src/routes/auth.routes.js`, `src/services/user.service.js`, `src/repositories/app-user.repository.js`, `docs/bug-log.md` | Mỗi bug được tái hiện bằng test FAIL trước khi sửa, sửa bằng một commit riêng, rồi chạy cả bộ test trên đúng cây mã của commit đó (117, 121, 124 test PASS); BUG-008 thử lại bằng server thật (body 300 KB trả 413) |
+| **Claude Code (Anthropic)** | Đóng gói bằng Docker Compose: Dockerfile hai giai đoạn, `docker-compose.yml` (MariaDB 10.11 và app, healthcheck), SQL khởi tạo hai database, script khởi động bằng Node, `.env.example` có giá trị mẫu chạy được, `.gitattributes`, README đúng 2 lệnh | `Dockerfile`, `docker-compose.yml`, `docker/initdb/01-databases.sql`, `scripts/docker-start.js`, `.dockerignore`, `.gitattributes`, `.env.example`, `package.json`, `README.md` | Phép thử máy trắng: clone repo từ GitHub vào thư mục trống, chạy đúng hai lệnh của README, `docker compose ps` cả hai dịch vụ `healthy`, `curl /health`, `docker compose exec app npm test` (125 test PASS trên Linux và MariaDB 10.11), chạy seed lần hai không đổi số dòng; thử thêm đổi `APP_PORT`, thiếu `.env`, tắt rồi bật lại CSDL |
+| **Claude Code (Anthropic)** | Tài liệu của Bài tập 3: Deployment Guide tiếng Anh, checklist bảo mật bảy mục, API docs tiếng Anh cho 18 endpoint (kèm script ghi lại request và response thật), cập nhật nhật ký thay đổi thiết kế (mục 23 đến 27), README | `docs/deployment-guide.md`, `docs/checklist-bao-mat.md`, `docs/api-docs/`, `scripts/capture-api-examples.js`, `docs/thay-doi-thiet-ke.md`, `README.md` | Mỗi dòng minh chứng của checklist là kết quả một lệnh đã chạy trên hệ thống Docker (quét lịch sử git, đọc cột `password_hash`, tắt CSDL, `grep` log, `npm audit`); ví dụ API do script ghi lại, không viết tay; đối chiếu 18 endpoint với `src/routes/`; chạy thử các lệnh trong Guide (sinh CSV 3.000 dòng, nhập file, đổi `APP_PORT`) |
+| **Claude (Anthropic)**, gợi ý khi rà soát | Nêu điểm cần xem lại trước khi chốt cách đóng gói: tài khoản CSDL tạo bằng `db:setup` chỉ dùng được từ `localhost` nên không nối được giữa hai container, bảng mã `utf8mb4_unicode_ci` phải đặt tường minh, cờ `--env-file` hỏng khi container không có `.env`, nên chạy phép thử máy trắng thật | `docker-compose.yml`, `docker/initdb/`, `package.json`, `scripts/docker-start.js` | Quyết định cuối do em. Từng điểm được kiểm bằng lệnh: đọc `scripts/db-setup.js` và `migrations/001_init.sql` để xác nhận hai điểm đầu; `docker compose exec app npm run seed` chạy được trong container không có `.env`; `npm test` trong container PASS 125 test |
+| *--- không dùng ---* | *Các phần tự thực hiện:* đổi quyết định để làm Docker sau khi thầy nhận xét Bài tập 2 (trước đó em chọn không làm), giữ nguyên màn hình tra cứu khách hàng, duyệt cách phân loại lại mức độ bug, chọn phạm vi kiểm soát truy cập ở mục 3 của checklist (lần nhập và cặp nghi trùng; hồ sơ khách hàng là dữ liệu chung), cho phép commit và push, nộp bài trên E-learning | Quyết định phạm vi; duyệt; nộp bài | Tự thực hiện |
 
 #### II.1. Bài tập 2 – Hiện thực hóa module cốt lõi (Buổi 7–12)
 
@@ -51,4 +62,4 @@
 
 * **Chữ ký / Họ tên sinh viên:** Lê Tấn Phong  
 * **Mã số sinh viên:** 2374802010384  
-* **Ngày khai báo:** 31/10/2026
+* **Ngày khai báo:** 14/11/2026
