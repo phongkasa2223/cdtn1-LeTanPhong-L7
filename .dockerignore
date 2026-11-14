@@ -1,0 +1,12 @@
+# Không đưa vào image: thư viện cài lại trong image, bản build làm trong image, bí mật và dữ liệu lớn.
+**/node_modules
+frontend/dist
+.env
+.git
+.gitignore
+.gitattributes
+*.log
+data
+docs
+.vscode
+.idea

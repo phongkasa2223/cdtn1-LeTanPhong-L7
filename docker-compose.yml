@@ -1,0 +1,50 @@
+# Hai dịch vụ: db (MariaDB) và app (API + giao diện). Chạy: docker compose up -d --build
+# Cổng CSDL KHÔNG mở ra máy chủ: chỉ app nối được qua mạng nội bộ của compose.
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      # Tài khoản ứng dụng cố định là mekong; mật khẩu lấy từ .env (thiếu thì compose báo lỗi ngay, không in giá trị).
+      MARIADB_USER: mekong
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Thiếu DB_PASSWORD trong .env (chạy cp .env.example .env)}
+      # Mật khẩu root sinh ngẫu nhiên và không ai dùng tới: ứng dụng chỉ dùng tài khoản mekong.
+      MARIADB_RANDOM_ROOT_PASSWORD: "1"
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  app:
+    build: .
+    init: true
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Ghi đè giá trị trong .env (dành cho chạy ngoài Docker) để cấu hình Docker luôn khớp nhau.
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: mekong_dq
+      DB_USER: mekong
+      PORT: "3000"
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # /health trả 503 khi mất CSDL nên healthy nghĩa là API và CSDL đều thông. Alpine không có curl nên dùng fetch của Node.
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  db-data:

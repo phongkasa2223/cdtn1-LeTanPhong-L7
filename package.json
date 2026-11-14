@@ -5,19 +5,19 @@
   "description": "Smart CRM Mekong Mobile - Luong L7: Chat luong du lieu khach hang (Track SE, CDTN1)",
   "main": "src/server.js",
   "scripts": {
-    "start": "node --env-file=.env src/server.js",
+    "start": "node --env-file-if-exists=.env src/server.js",
     "env:init": "node scripts/init-env.js",
-    "db:setup": "node --env-file=.env scripts/db-setup.js",
+    "db:setup": "node --env-file-if-exists=.env scripts/db-setup.js",
     "gen:data": "node scripts/gen-sample-csv.js",
     "build": "npm --prefix frontend ci && npm --prefix frontend run build",
-    "e2e": "node --env-file=.env scripts/e2e.js",
-    "migrate": "node --env-file=.env scripts/run-sql.js migrations",
-    "seed": "node --env-file=.env scripts/run-sql.js seeds",
-    "db:count": "node --env-file=.env scripts/count-rows.js",
+    "e2e": "node --env-file-if-exists=.env scripts/e2e.js",
+    "migrate": "node --env-file-if-exists=.env scripts/run-sql.js migrations",
+    "seed": "node --env-file-if-exists=.env scripts/run-sql.js seeds",
+    "db:count": "node --env-file-if-exists=.env scripts/count-rows.js",
     "test": "node --test --test-concurrency=1"
   },
   "engines": {
-    "node": ">=20.12"
+    "node": ">=22.9"
   },
   "dependencies": {
     "csv-parse": "7.0.3",
