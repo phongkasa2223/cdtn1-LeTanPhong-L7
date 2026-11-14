@@ -9,6 +9,7 @@ Kết quả chạy 12 test case của `docs/test-plan.md`. Mọi ca đã **chạ
 | Lần 1, trước khi sửa bug | 11:28 | 12 ca chạy: **9 PASS, 3 FAIL** (TC-08, TC-11, TC-12) |
 | Lần cuối, sau khi sửa 3 bug | 11:39 | 12 ca chạy: **12 PASS, 0 FAIL** |
 | Cả bộ bằng một lệnh `npm test` | sau commit cuối của phần kiểm thử | **125 test, 125 PASS, 0 FAIL**, khoảng 9 giây (115 đơn vị, 6 tích hợp, 4 API); ảnh `npm-test.png` |
+| Cả bộ trong Docker, trên bản clone sạch từ GitHub | 14/11/2026 | `docker compose exec app npm test`: **125 test, 125 PASS, 0 FAIL**, khoảng 8 giây, trên Linux (Node 24.22) và MariaDB 10.11 (máy phát triển dùng Windows và MariaDB 10.4); ảnh ở mục 7 của PDF |
 
 Ba ca FAIL ở lần 1 tìm ra ba bug thật, mỗi bug đã sửa bằng một commit riêng: TC-12 tìm ra BUG-008, TC-11 tìm ra BUG-009, TC-08 tìm ra BUG-010. Sau mỗi lần sửa, cả bộ `npm test` được chạy lại trên đúng cây mã của commit đó: 117, 121 rồi 124 test, đều PASS hết (ảnh `BUG-008-fixed.png`, `BUG-009-fixed.png`, `BUG-010-fixed.png`).
 

@@ -35,8 +35,8 @@ Test Plan rút gọn cho Bài tập 3, viết **trước khi chạy** Test Repor
 
 ## 4. Môi trường và dữ liệu thử
 
-- **Máy chạy:** Windows 11, Node.js 24, MariaDB 10.4.32 (XAMPP) chạy cục bộ. Gói Docker (`Dockerfile`, `docker-compose.yml`) được thêm ở Bài tập 3 (`docs/thay-doi-thiet-ke.md` mục 23); cách chạy test trong container sẽ ghi bổ sung khi gói đó chạy được.
-- **CSDL thử:** `mekong_dq_test`, tách riêng với CSDL chạy thật `mekong_dq`, do `npm run db:setup` tạo. Hạ tầng test từ chối xóa dữ liệu nếu tên CSDL không kết thúc bằng `_test`.
+- **Máy chạy:** hai môi trường, cả hai đều chạy đủ bộ test. (1) Máy phát triển: Windows 11, Node.js 24, MariaDB 10.4.32 (XAMPP) chạy cục bộ, lệnh `npm test`. (2) **Docker Compose**, là cách dùng để chấm: container `app` (Linux, Node 24) nối container `db` (MariaDB 10.11), lệnh `docker compose exec app npm test`; cách dựng ở `docs/deployment-guide.md` và lý do ở `docs/thay-doi-thiet-ke.md` mục 26.
+- **CSDL thử:** `mekong_dq_test`, tách riêng với CSDL chạy thật `mekong_dq`, do `npm run db:setup` tạo (máy phát triển) hoặc do `docker/initdb/01-databases.sql` tạo khi volume CSDL còn trống (Docker). Hạ tầng test từ chối xóa dữ liệu nếu tên CSDL không kết thúc bằng `_test`.
 - **Dữ liệu thử:** `seeds/001_demo.sql` gồm 3 tài khoản (`nv.lan` CH01, `nv.minh` CH02, `ql.hung` quản lý, mật khẩu `Demo@123`), 12 hồ sơ khách hàng, 2 lần nhập, 2 cặp nghi trùng chờ duyệt.
 - **Dựng và dọn:** `resetDb()` xóa sạch 6 bảng rồi nạp lại seeds trước **mỗi** test tích hợp và test API; test đơn vị dùng repository giả nên không đụng CSDL.
 - **Lệnh:** `npm test` chạy cả ba tầng (khoảng 8 giây); chạy riêng một ca: `node --test --test-name-pattern="^TC-DB1 " tests/integration/import.db.test.js`.
